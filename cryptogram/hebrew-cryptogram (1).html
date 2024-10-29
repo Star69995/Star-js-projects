@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>משחק צופן עברי</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #1a73e8;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .puzzle-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .word-group {
+            display: flex;
+            gap: 1rem;
+            margin: 0.5rem 0;
+            justify-content: center;
+        }
+
+        .letter-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .encrypted-letter {
+            font-size: 2rem;
+            color: #1a73e8;
+            font-weight: bold;
+            width: 30px;
+            text-align: center;
+        }
+
+        .solution-letter {
+            font-size: 1.5rem;
+            color: #333;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            border: none;
+            border-bottom: 2px solid #ddd;
+            background: transparent;
+            transition: border-color 0.3s;
+        }
+
+        .solution-letter:focus {
+            outline: none;
+            border-bottom-color: #1a73e8;
+        }
+
+        .space {
+            width: 20px;
+        }
+
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1557b0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .hint {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .letter-mapping {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>משחק צופן עברי</h1>
+        <div class="game-area">
+            <div class="puzzle-container" id="puzzleContainer"></div>
+            <div class="letter-mapping" id="letterMapping"></div>
+            <div class="controls">
+                <button onclick="checkSolution()">בדוק פתרון</button>
+                <button onclick="getHint()">קבל רמז</button>
+                <button onclick="resetGame()">משחק חדש</button>
+            </div>
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <script>
+        const sentences = [
+            "שלום לכולם",
+            "ארץ ישראל יפה",
+            "אני אוהב לתכנת",
+            "משחק מחשבה מאתגר",
+            "עברית היא שפה יפה"
+        ];
+
+        let currentSentence = "";
+        let encryptedSentence = "";
+        let letterMapping = {};
+        let reversedMapping = {};
+        let solutionMapping = {};
+
+        function shuffleString(str) {
+            const arr = Array.from('אבגדהוזחטיכלמנסעפצקרשת');
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr.join('');
+        }
+
+        function encryptSentence(sentence) {
+            const hebrewAlphabet = 'אבגדהוזחטיכלמנסעפצקרשת';
+            const shuffledAlphabet = shuffleString(hebrewAlphabet);
+            
+            letterMapping = {};
+            reversedMapping = {};
+            solutionMapping = {};
+            
+            for (let i = 0; i < hebrewAlphabet.length; i++) {
+                letterMapping[hebrewAlphabet[i]] = shuffledAlphabet[i];
+                reversedMapping[shuffledAlphabet[i]] = hebrewAlphabet[i];
+            }
+
+            return sentence
+                .split('')
+                .map(char => letterMapping[char] || char)
+                .join('');
+        }
+
+        function createPuzzleUI() {
+            const container = document.getElementById('puzzleContainer');
+            container.innerHTML = '';
+            
+            const words = encryptedSentence.split(' ');
+            
+            words.forEach((word, wordIndex) => {
+                const wordGroup = document.createElement('div');
+                wordGroup.className = 'word-group';
+                
+                Array.from(word).forEach((letter, letterIndex) => {
+                    const letterGroup = document.createElement('div');
+                    letterGroup.className = 'letter-group';
+                    
+                    const encryptedSpan = document.createElement('div');
+                    encryptedSpan.className = 'encrypted-letter';
+                    encryptedSpan.textContent = letter;
+                    
+                    const input = document.createElement('input');
+                    input.className = 'solution-letter';
+                    input.maxLength = 1;
+                    input.dataset.encrypted = letter;
+                    input.addEventListener('input', handleInput);
+                    input.value = solutionMapping[letter] || '';
+                    
+                    letterGroup.appendChild(encryptedSpan);
+                    letterGroup.appendChild(input);
+                    wordGroup.appendChild(letterGroup);
+                });
+                
+                container.appendChild(wordGroup);
+                
+                // Add space between words
+                if (wordIndex < words.length - 1) {
+                    const space = document.createElement('div');
+                    space.className = 'space';
+                    container.appendChild(space);
+                }
+            });
+        }
+
+        function handleInput(event) {
+            const input = event.target;
+            const encryptedLetter = input.dataset.encrypted;
+            input.value = input.value.replace(/[^א-ת]/g, '');
+            
+            if (input.value) {
+                solutionMapping[encryptedLetter] = input.value;
+                // Update all instances of this letter
+                document.querySelectorAll(`.solution-letter[data-encrypted="${encryptedLetter}"]`)
+                    .forEach(inp => inp.value = input.value);
+            } else {
+                delete solutionMapping[encryptedLetter];
+            }
+        }
+
+        function checkSolution() {
+            let correct = true;
+            for (const [encrypted, solution] of Object.entries(solutionMapping)) {
+                if (solution !== reversedMapping[encrypted]) {
+                    correct = false;
+                    break;
+                }
+            }
+            
+            const message = document.getElementById('message');
+            if (correct && Object.keys(solutionMapping).length === Object.keys(reversedMapping).length) {
+                message.className = 'message success';
+                message.textContent = 'כל הכבוד! פתרת את החידה בהצלחה!';
+            } else {
+                message.className = 'message';
+                message.textContent = 'לא בדיוק... נסה שוב!';
+            }
+        }
+
+        function getHint() {
+            const emptyLetters = Array.from(new Set(encryptedSentence))
+                .filter(letter => letter !== ' ' && !solutionMapping[letter]);
+            
+            if (emptyLetters.length > 0) {
+                const randomLetter = emptyLetters[Math.floor(Math.random() * emptyLetters.length)];
+                const correctSolution = reversedMapping[randomLetter];
+                
+                solutionMapping[randomLetter] = correctSolution;
+                document.querySelectorAll(`.solution-letter[data-encrypted="${randomLetter}"]`)
+                    .forEach(input => input.value = correctSolution);
+                
+                const message = document.getElementById('message');
+                message.className = 'message hint';
+                message.textContent = `רמז: האות ${randomLetter} מוצפנת ל-${correctSolution}`;
+            }
+        }
+
+        function resetGame() {
+            currentSentence = sentences[Math.floor(Math.random() * sentences.length)];
+            encryptedSentence = encryptSentence(currentSentence);
+            solutionMapping = {};
+            
+            createPuzzleUI();
+            
+            const message = document.getElementById('message');
+            message.className = 'message';
+            message.textContent = '';
+        }
+
+        // Initialize game
+        resetGame();
+    </script>
+</body>
+</html>
