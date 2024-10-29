@@ -1,4 +1,5 @@
 const projects = [
+    { name: "האתר של סטאר", url: "https://star69995.github.io/star-site/" },
     { name: "קריפטוגרמה", url: "cryptogram/index.html" },
     { name: "שעון עצר", url: "timer/index.html" },
 ];
