@@ -1,106 +1,3 @@
-// Define a simple dictionary object with categories and sentences
-const dictionary = {
-    "כללי": "שלום לכולם!",
-    "ציטוטים": [
-        "'החיים הם מה שקורה כשאנחנו עסוקים בתכנונים אחרים.' - ג'ון לנון",
-        "'הדרך הטובה ביותר לנבא את העתיד היא להמציא אותו.' - אלן קיי",
-        "'אם אתה רוצה לייצר שלום, הכין את עצמך למלחמה.' - פלוטין",
-        "הצלחה היא לא הסוף, כישלון הוא לא האבדון; מה שחשוב זה להמשיך. - וינסטון צ'רצ'יל",
-        "החיים הם 10% מה שקורה לנו ו-90% איך שאנחנו מגיבים לזה. - צ'רלס ר. סוינדול",
-        "'אל תחכו להזדמנויות, צרו אותן.' - ג'ורג' ברנרד שו",
-        "'העבודה קשה משתלמת.' - לא ידוע",
-        "'תמיד תעשה את הטוב ביותר שלך.' - לא ידוע",
-        "'השינוי הוא הדבר הקבוע ביותר בחיים.' - הרקליטוס",
-        "'תאמינו בעצמכם וביכולת שלכם.' - לא ידוע"
-    ],
-    "משפטים אחרים": [
-        "יש כוח במילים, הן יכולות לבנות והן יכולות להרוס.",
-        "לעולם אל תוותר על מה שחשוב לך.",
-        "ההצלחה היא לא הסוף, הכישלון הוא לא האבדון; מה שחשוב זה להמשיך.",
-        "כל יום הוא הזדמנות חדשה.",
-        "לעשות שינוי קטן יכול להביא לשינוי גדול.",
-        "תמיד יש מה ללמוד מהכישלונות שלנו.",
-        "אהבה היא הכוח החזק ביותר בעולם.",
-        "חיים טובים מתחילים באמונה בעצמך.",
-        "סבלנות היא המפתח להצלחה.",
-        "נחישות יכולה להניע אותנו להישגים גדולים.",
-        "כל אתגר הוא הזדמנות לצמיחה.",
-        "היכולת שלנו להתגבר על קשיים היא מה שמגדיר אותנו.",
-        "נחישות ורגישות יכולים להביא להצלחות גדולות.",
-        "קשרים אנושיים הם מה שמחזק אותנו.",
-        "הניסיון הוא המורה הטוב ביותר.",
-        "חיים טובים הם חיים עם משמעות.",
-        "תמיד תאמין שתוכל לעשות את זה.",
-        "חיים בלי חלומות הם כמו גן בלי פרחים.",
-        "כשהתודעה שלך פתוחה, העולם נפתח בפניך.",
-        "החיים הם מתנה, נצלו כל רגע.",
-        "חיים הם לא מה שיש לנו, אלא מה שאנחנו עושים עם מה שיש.",
-        "אופטימיות היא הבחירה הנכונה בכל מצב.",
-        "כל סוף הוא התחלה חדשה.",
-        "כשהחיים נותנים לך לימונים, עשה מהם לימונדה.",
-        "חברים הם המשפחה שבחרנו.",
-        "הקשבה היא המפתח לתקשורת מוצלחת.",
-        "נחישות, התמדה ואמונה הם המתכון להצלחה.",
-        "העוצמה הפנימית שלנו היא מה שמניע אותנו קדימה.",
-        "חיים הם מסע, לא יעד.",
-        "הכישלון הוא שלב בדרך להצלחה.",
-        "למצוא את התשוקה שלך יכול לשנות את חייך.",
-        "לכל אחד יש את הייחודיות שלו, תראה זאת.",
-        "חיים של נתינה הם חיים עשירים.",
-        "העושר האמיתי הוא לא כסף, אלא חוויות.",
-        "בנה את החלומות שלך, אל תתן להם להיות רק חלומות.",
-        "ללמוד משהו חדש כל יום שווה את זה.",
-        "החיים הם תהליך של גילוי עצמי.",
-        "אין דבר בלתי אפשרי, רק מה שלא ניסינו.",
-        "שינוי מתחיל אצלנו.",
-        "יש יותר כוח במילה טובה מאשר במילה רעה.",
-        "חיים הם כמו מסלול רכבת, יש עליות וירידות.",
-        "האמונה בעצמך היא הצעד הראשון להצלחה.",
-        "לא משנה מה יקרה, תמיד תישאר חיובי.",
-        "לעולם אל תפסיק לחפש את התשובות.",
-        "הצעד הראשון לקראת ההצלחה הוא החלטה לנסות.",
-        "מילים יכולות לרפא, הן חזקות.",
-        "תנו לאחרים את הכוח לגדול.",
-        "כל יום הוא יום חדש להתחלות חדשות.",
-        "חיים מלאים במשמעות הם חיים מספקים.",
-        "הבנה אמיתית מגיעה דרך ניסיון.",
-        "כשהלילה הכי חשוך, הכוכבים הכי בולטים.",
-        "החיים הם מסע, לא יעד.",
-        "הצלחה היא תוצאה של הכנה ומאמץ.",
-        "ההזדמנות הטובה ביותר היא זו שבאה פתאום.",
-        "הכל תלוי בהשקפת העולם שלך.",
-        "תמיד יש זמן לעשות מה שאתה אוהב.",
-        "חיים בריאים מביאים לתודעה חיובית.",
-        "אהבה היא מתנה שאין לה תחליף.",
-        "כל מה שאתה צריך הוא בתוכך.",
-        "תמיד תמצא דרך לעקוף את הקשיים.",
-        "חיים של נתינה משאירים חותם טוב.",
-        "האתגרים מעצבים אותנו.",
-        "העבר הוא רק שיעור, לא מגבלה.",
-        "תתמודד עם הפחדים שלך, אל תיתן להם לשלוט בך.",
-        "היכולת שלנו לאהוב היא מה שמייחד אותנו.",
-        "כל התחלות קשות, אך הן מובילות להצלחות.",
-        "נחישות יכולה להביא אותנו רחוק.",
-        "תמיד יש אור בקצה המנהרה.",
-        "שוב ושוב, צא מאזור הנוחות שלך.",
-        "תשקול את האפשרויות לפני קבלת החלטות.",
-        "בנה את החיים שאתה רוצה לחיות.",
-        "אל תתן לדעות של אחרים להכתיב את חייך.",
-        "אם תחליט לעשות שינוי, זה יכול לקרות.",
-        "חיים הם לא מסלול ישר, אלא מסלול מתפתל.",
-        "הכוח האמיתי הוא מה שבתוך הלב.",
-        "לצחוק זה דבר חשוב, תעשה את זה הרבה.",
-        "מילים יכולות לבנות גשרים.",
-        "חיים הם מתנה, נצלו כל רגע.",
-        "אל תוותרו על החלומות שלכם.",
-        "לעולם אל תפסיקו ללמוד.",
-        "היכולת שלנו לחלום היא מה שמניע אותנו.",
-        "לכל אדם יש סיפור שצריך לשמוע.",
-        "כשהאמונה גדולה, הכל אפשרי.",
-        "תמיד תשאף להיות הגרסה הטובה ביותר של עצמך.",
-        "כל רעיון מתחיל בחלום."
-    ]
-};
 
 
 
@@ -167,11 +64,13 @@ function createPuzzleUI() {
         wordGroup.className = 'word-group';
 
         Array.from(word).forEach((letter, letterIndex) => {
+            const encryptedSpan = document.createElement('div');
+            encryptedSpan.className = 'encrypted-letter';
+
             const letterGroup = document.createElement('div');
             letterGroup.className = 'letter-group';
 
-            const encryptedSpan = document.createElement('div');
-            encryptedSpan.className = 'encrypted-letter';
+
 
             if (hebrewAlphabet.includes(letter)) {
                 encryptedSpan.textContent = letter; // Encrypt the letter
@@ -192,8 +91,8 @@ function createPuzzleUI() {
 
                 input.value = solutionMapping[letter] || '';
 
-                letterGroup.appendChild(encryptedSpan);
                 letterGroup.appendChild(input);
+                letterGroup.appendChild(encryptedSpan);
                 wordGroup.appendChild(letterGroup);
 
             } else {
@@ -209,8 +108,8 @@ function createPuzzleUI() {
 
                 input.value = letter;
                 input.disabled = true;
-                letterGroup.appendChild(encryptedSpan);
                 letterGroup.appendChild(input);
+                // letterGroup.appendChild(encryptedSpan);
                 wordGroup.appendChild(letterGroup);
             }
 
@@ -230,6 +129,13 @@ function handleInput(event) {
     const input = event.target;
     const encryptedLetter = input.dataset.encrypted;
     let newValue = input.value.replace(/[^א-ת]/g, '');
+    // Prevent typing the letter again if it is already used in the solution
+    if (usedLetters.has(newValue) && solutionMapping[encryptedLetter] !== newValue) {
+        input.value = '';  // Clear the input if it's already used
+        return;            // Exit the function without making any changes
+    }
+
+
 
     if (newValue.length > 0) {
         // Reset background color for all instances of the same letter
@@ -288,6 +194,11 @@ function updateInputColor(input) {
     const userSolution = solutionMapping[encryptedLetter];
     const correctSolution = reversedMapping[encryptedLetter];
 
+    // בדיקה אם הרקע כבר כחול בהיר (#ADD8E6)
+    if (input.style.backgroundColor === 'lightblue') {
+        return; // יציאה מהפונקציה בלי לשנות צבע
+    }
+
     if (!userSolution) {
         input.style.backgroundColor = 'white';
         return;
@@ -295,11 +206,12 @@ function updateInputColor(input) {
 
     if (userSolution === correctSolution) {
         input.style.backgroundColor = '#90EE90'; // ירוק בהיר
-        input.readOnly = true;  // Lock input if the solution is correct, but allow focus
+        input.readOnly = true;  // נעילת הקלט אם הפתרון נכון
     } else {
         input.style.backgroundColor = '#FFB6C6'; // אדום בהיר
     }
 }
+
 
 function updateAllInputColors() {
     document.querySelectorAll('.solution-letter').forEach(updateInputColor);
@@ -470,13 +382,17 @@ function checkSolution() {
 
 
 function getHint() {
-    const unsolvedLetters = Object.keys(reversedMapping).filter(letter => !solutionMapping[letter] && letter !== ' ');
+    // סינון האותיות המוצפנות שעדיין לא נחשפו ומופיעות במשפט
+    const unsolvedLetters = Array.from(document.querySelectorAll('.solution-letter'))
+        .map(input => input.dataset.encrypted)
+        .filter(letter => !solutionMapping[letter] && letter !== ' ');
 
+    // אם יש אותות לא פתורות, נבחר אחת מהן באופן רנדומלי
     if (unsolvedLetters.length > 0) {
         const randomLetter = unsolvedLetters[Math.floor(Math.random() * unsolvedLetters.length)];
         const correctSolution = reversedMapping[randomLetter];
 
-        // אם הרמז מכיל אות שכבר בשימוש, מוחקים אותה מהמקום הקודם
+        // אם האות כבר בשימוש, מוחקים אותה מהמיקום הקודם
         if (usedLetters.has(correctSolution)) {
             const previousEncryptedLetter = Object.keys(solutionMapping).find(key => solutionMapping[key] === correctSolution);
             if (previousEncryptedLetter) {
@@ -484,29 +400,26 @@ function getHint() {
                 document.querySelectorAll(`.solution-letter[data-encrypted="${previousEncryptedLetter}"]`)
                     .forEach(inp => {
                         inp.value = '';
-                        updateInputColor(inp);
+                        inp.style.backgroundColor = 'white'; // Reset color
                     });
             }
         }
 
+        // הגדרת הרמז והוספת צבע כחול לכל ההופעות
         solutionMapping[randomLetter] = correctSolution;
         usedLetters.add(correctSolution);
 
         document.querySelectorAll(`.solution-letter[data-encrypted="${randomLetter}"]`)
             .forEach(input => {
                 input.value = correctSolution;
-                updateInputColor(input);
+                input.style.backgroundColor = 'lightblue'; // Set hint color to blue
+                input.readOnly = true;  // Lock input if the solution is correct, but allow focus
             });
-
-        const message = document.getElementById('message');
-        message.className = 'message hint';
-        message.textContent = `רמז: האות ${randomLetter} מוצפנת ל-${correctSolution}`;
-    } else {
-        const message = document.getElementById('message');
-        message.className = 'message hint';
-        message.textContent = 'כבר מילאת את כל האותיות!';
     }
 }
+
+
+
 
 function clearBoard() {
     // Create new mappings for correct answers
@@ -540,27 +453,55 @@ function clearBoard() {
 }
 
 
+// נגדיר משתנה גלובלי לשמירת המילון
+let dictionary = null;
+
+// פונקציה לטעינת המילון
+function loadDictionary() {
+    return fetch('sentences-dictionary.json')
+        .then(response => response.json())
+        .then(data => {
+            dictionary = data; // שמירת המילון במשתנה הגלובלי
+            return dictionary;
+        });
+}
 
 
+
+// פונקציה מעודכנת ל-reset
 function resetGame() {
+    // בדיקה אם המילון כבר נטען
+    if (!dictionary) {
+        loadDictionary().then(() => {
+            performReset();
+        });
+    } else {
+        performReset();
+    }
+}
+
+// הפונקציה שמבצעת את האיפוס בפועל
+function performReset() {
     const categories = Object.keys(dictionary);
     const randomCategory = categories[Math.floor(Math.random() * categories.length)];
 
     // Get a random sentence from the selected category
     const sentences = dictionary[randomCategory];
-    const randomSentence = Array.isArray(sentences) ? sentences[Math.floor(Math.random() * sentences.length)] : sentences;
+    const randomSentence = Array.isArray(sentences) ?
+        sentences[Math.floor(Math.random() * sentences.length)] :
+        sentences;
 
-    currentSentence = randomSentence; // Assign the selected sentence
+    currentSentence = randomSentence;
     encryptedSentence = encryptSentence(currentSentence);
 
     // Display the category above the puzzle
     const categoryContainer = document.getElementById('categoryContainer');
-    categoryContainer.innerHTML = ''; // Clear existing content
+    categoryContainer.innerHTML = '';
 
-    const categoryHeading = document.createElement('h2'); // Create h2 element
-    categoryHeading.textContent = `קטגוריה: ${randomCategory}`; // Set content
+    const categoryHeading = document.createElement('h2');
+    categoryHeading.textContent = `קטגוריה: ${randomCategory}`;
 
-    categoryContainer.appendChild(categoryHeading); // Append h2 to the container
+    categoryContainer.appendChild(categoryHeading);
 
     solutionMapping = {};
     usedLetters.clear();
@@ -572,7 +513,40 @@ function resetGame() {
     message.textContent = '';
 }
 
+// טעינת המילון כשהדף נטען
+document.addEventListener('DOMContentLoaded', () => {
+    loadDictionary().then(() => {
+        // אפשר להפעיל כאן את resetGame אם רוצים
+        resetGame();
+    }).catch(error => {
+        console.error('Error loading dictionary:', error);
+    });
+});
 
 
-// Initialize game
-resetGame();
+
+
+
+// Modal functionality
+function showInstructions() {
+    const modal = document.getElementById('instructionsModal');
+    modal.style.display = 'block';
+}
+
+// כשהדף נטען, נוסיף את ההתנהגות לכפתור הסגירה ולחיצה מחוץ למודל
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('instructionsModal');
+    const span = document.getElementsByClassName('close')[0];
+
+    // כשלוחצים על X, סוגרים את המודל
+    span.onclick = function () {
+        modal.style.display = 'none';
+    }
+
+    // כשלוחצים מחוץ למודל, סוגרים אותו
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+});
