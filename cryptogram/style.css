@@ -19,7 +19,7 @@ body {
     border-radius: 1rem;
     padding: 2rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 800px;
+    max-width: 1500px;
     width: 100%;
 }
 
@@ -78,7 +78,7 @@ h2 {
 
 .solution-letter,
 .solution-letter-punctuation {
-    font-size: 1.5rem;
+    font-size: 2rem;
     color: #333;
     width: 24px;
     /* הקטנת הרוחב של כל אות */
@@ -119,6 +119,7 @@ button:hover {
 
 .controls {
     display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
     justify-content: center;
     margin-top: 1rem;

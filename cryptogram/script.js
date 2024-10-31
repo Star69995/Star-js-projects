@@ -129,15 +129,24 @@ function handleInput(event) {
     const input = event.target;
     const encryptedLetter = input.dataset.encrypted;
     let newValue = input.value.replace(/[^א-ת]/g, '');
-    // Prevent typing the letter again if it is already used in the solution
-    if (usedLetters.has(newValue) && solutionMapping[encryptedLetter] !== newValue) {
-        input.value = '';  // Clear the input if it's already used
-        return;            // Exit the function without making any changes
-    }
-
-
 
     if (newValue.length > 0) {
+
+        // בדוק את צבע הרקע של כל השדות שבהם האות נמצאת
+        const existingInputs = document.querySelectorAll(`.solution-letter`);
+
+        const isReadOnly = Array.from(existingInputs).some(inp => {
+            const letterInInput = inp.value; // Check what letter is in the input
+            return letterInInput == newValue && inp.readOnly == true;
+        });
+
+        if (isReadOnly) {
+            input.value = '';
+            return;
+        }
+
+
+
         // Reset background color for all instances of the same letter
         document.querySelectorAll(`.solution-letter[data-encrypted="${encryptedLetter}"]`)
             .forEach(inp => inp.style.backgroundColor = 'white');
