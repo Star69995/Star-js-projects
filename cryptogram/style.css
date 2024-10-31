@@ -71,7 +71,7 @@ h2 {
     font-size: 2rem;
     color: black;
     font-weight: bold;
-    width: 24px;
+    width: 1.5rem;
     /* הקטנת הרוחב של כל אות */
     text-align: center;
 }
@@ -80,9 +80,9 @@ h2 {
 .solution-letter-punctuation {
     font-size: 2rem;
     color: #333;
-    width: 24px;
+    width: 1.5rem;
     /* הקטנת הרוחב של כל אות */
-    height: 30px;
+    height: 2.5rem;
     text-align: center;
     border: none;
     border-bottom: 2px solid black;
