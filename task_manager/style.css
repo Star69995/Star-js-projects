@@ -1,0 +1,140 @@
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+
+:root {
+    --primary-color: #0081a7;
+    --secondary-color: #00afb9;
+    --forth-color: #fdfcdc;
+    --fifth-color: #fed9b7;
+    --sixth-color: #f07167;
+    --radius: 30px;
+    --padding: 30px;
+}
+
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Varela Round", Arial, Helvetica, sans-serif;
+}
+
+
+body {
+    background-color: var(--forth-color);
+}
+
+.strip {
+    background-color: var(--secondary-color);
+    /* color: var(--primary-color); */
+    box-shadow: rgba(0, 0, 0, 0.5) 10px 5px 10px;
+    /* width: 80vw; */
+    padding: var(--padding);
+    margin: 20px;
+    border-radius: var(--radius);
+}
+.strip:hover {
+    box-shadow: rgba(0, 0, 0, 0.664) 10px 5px 10px;
+}
+.listsArea {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+
+}
+
+
+.list {
+    background-color: var(--secondary-color);
+    box-shadow: rgba(0, 0, 0, 0.5) 10px 5px 10px;
+    padding: var(--padding);
+    margin: 20px;
+    border-radius: var(--radius);
+    height: content-fit;
+}
+.list:hover{
+    box-shadow: rgba(0, 0, 0, 0.664) 10px 5px 10px;
+}
+
+.list h2{
+    text-decoration: underline;
+}
+
+h1{
+    margin-bottom: 10px;
+}
+
+button{
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+}
+
+button:hover{
+    box-shadow: rgba(0, 0, 0, 0.5) 7px 7px 7px 7px inset;
+}
+
+
+.strip {
+    text-align: center;
+    /* Center-aligns title */
+}
+
+.task {
+    margin: 10px 0;
+    /* Spacing between tasks */
+}
+
+input[type="text"] {
+    padding: 10px;
+    /* Padding for input field */
+    border-radius: var(--radius);
+    /* Consistent with other elements */
+    border: 1px solid var(--primary-color);
+}
+
+
+
+.delete-button {
+    border: none;
+    background: transparent;
+    color: black;
+    /* Initial color */
+    font-size: 1rem;
+    /* Adjust size */
+    cursor: pointer;
+    float: right;
+    /* For tasks */
+}
+
+.list {
+    position: relative;
+    /* Required for positioning the list delete button */
+}
+
+.list>.delete-button {
+    position: absolute;
+    /* Position in the top left corner */
+    top: 15px;
+}
+
+.delete-button.red {
+    color: red;
+    /* Color when clicked */
+}
+
+.task-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 15px;
+}
+.task-content {
+    display: flex;
+    align-items: start;
+    width: 100%;
+}
