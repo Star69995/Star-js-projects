@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ערבוב רשימות השמעה בספוטיפיי</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #121212;
+            color: #ffffff;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            text-align: right;
+        }
+
+        h1 {
+            color: #1DB954;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            color: #1DB954;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .container {
+            background: #282828;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            font-size: 1rem;
+            background: #404040;
+            border: 1px solid #666;
+            border-radius: 4px;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        input::placeholder {
+            color: #888;
+        }
+
+        button {
+            background: #1DB954;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background: #1ed760;
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .status.success {
+            background: #1DB954;
+            display: block;
+        }
+
+        .status.error {
+            background: #e74c3c;
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            margin-right: 0.5rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #loginButton {
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>ערבוב רשימות השמעה</h1>
+        <button id="loginButton" onclick="login()">התחבר לספוטיפיי</button>
+
+        <div id="playlistContainer" style="display: none;">
+            <h2>ערבוב רשימת השמעה</h2>
+            <div class="input-group">
+                <label for="playlist">רשימת השמעה:</label>
+                <input type="text" id="playlist" placeholder="הכנס קישור לרשימת ההשמעה">
+                <button onclick="randomizeTracks()" id="randomizeBtn">
+                    <span class="loading">⭕</span>
+                    ערבב שירים
+                </button>
+            </div>
+            <div class="input-group">
+                <label for="tokenInput">או הכנס טוקן ישירות:</label>
+                <input type="text" id="tokenInput" placeholder="הדבק כאן את הטוקן">
+                <button onclick="useToken()">השתמש בטוקן</button>
+            </div>
+
+        </div>
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+
+        // use SpotifyApiSpotify.JS
+        
+        // הגדרות ספוטיפיי - יש להחליף עם הפרטים שלך
+        const CLIENT_ID = 'your-client-id';
+        const REDIRECT_URI = 'your-redirect-uri';
+        const SCOPES = 'playlist-modify-public playlist-modify-private playlist-read-private';
+
+        let accessToken = null;
+
+        // Check if token is entered manually
+            function useToken() {
+                const tokenInput = document.getElementById('tokenInput').value;
+                if (tokenInput) {
+                    accessToken = tokenInput;
+                    document.getElementById('loginButton').style.display = 'none';
+                    document.getElementById('playlistContainer').style.display = 'block';
+                    showStatus('טוקן נכנס בהצלחה!', 'success');
+                } else {
+                    showStatus('אנא הכנס טוקן חוקי', 'error');
+                }
+            }
+
+
+        // בדיקה אם יש טוקן בחזרה מספוטיפיי
+        window.onload = () => {
+            const hash = window.location.hash
+                .substring(1)
+                .split('&')
+                .reduce((initial, item) => {
+                    const parts = item.split('=');
+                    initial[parts[0]] = decodeURIComponent(parts[1]);
+                    return initial;
+                }, {});
+
+            if (hash.access_token) {
+                accessToken = hash.access_token;
+                document.getElementById('loginButton').style.display = 'none';
+                document.getElementById('playlistContainer').style.display = 'block';
+            }
+        };
+
+        // פונקציית התחברות לספוטיפיי
+        function login() {
+            const authEndpoint = 'https://accounts.spotify.com/authorize';
+            const url = `${authEndpoint}?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&response_type=token`;
+            window.location.href = url;
+        }
+
+        // פונקציה להוצאת מזהה פלייליסט מ-URL
+        function getPlaylistId(url) {
+            const parts = url.split('/');
+            return parts[parts.length - 1].split('?')[0];
+        }
+
+        // פונקציה לערבוב מערך
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        async function randomizeTracks() {
+            const playlistUrl = document.getElementById('playlist').value;
+            const button = document.getElementById('randomizeBtn');
+            const loading = button.querySelector('.loading');
+            const statusDiv = document.getElementById('status');
+
+            if (!playlistUrl) {
+                showStatus('אנא הכנס קישור לרשימת השמעה', 'error');
+                return;
+            }
+
+            if (!accessToken) {
+                showStatus('יש להתחבר לספוטיפיי תחילה', 'error');
+                return;
+            }
+
+            button.disabled = true;
+            loading.style.display = 'inline-block';
+            statusDiv.style.display = 'none';
+
+            try {
+                const playlistId = getPlaylistId(playlistUrl);
+
+                // קבלת כל השירים מהפלייליסט
+                const tracks = await getAllPlaylistTracks(playlistId);
+
+                // ערבוב השירים
+                const shuffledUris = shuffleArray(tracks.map(track => track.track.uri));
+
+                // מחיקת כל השירים מהפלייליסט
+                await removeTracksFromPlaylist(playlistId, shuffledUris);
+
+                // הוספת השירים בסדר החדש
+                await addTracksToPlaylist(playlistId, shuffledUris);
+
+                showStatus('רשימת ההשמעה עורבבה בהצלחה!', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`שגיאה: ${error.message}`, 'error');
+            } finally {
+                button.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        async function getAllPlaylistTracks(playlistId) {
+            let tracks = [];
+            let url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks`;
+
+            while (url) {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('שגיאה בקבלת השירים מהפלייליסט');
+                }
+
+                const data = await response.json();
+                tracks = tracks.concat(data.items);
+                url = data.next;
+            }
+
+            return tracks;
+        }
+
+        async function removeTracksFromPlaylist(playlistId, uris) {
+            const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    tracks: uris.map(uri => ({ uri }))
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('שגיאה במחיקת השירים מהפלייליסט');
+            }
+        }
+
+        async function addTracksToPlaylist(playlistId, uris) {
+            // מוסיף שירים ב-100 בכל פעם (מגבלת API)
+            for (let i = 0; i < uris.length; i += 100) {
+                const batch = uris.slice(i, i + 100);
+                const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        uris: batch
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('שגיאה בהוספת השירים לפלייליסט');
+                }
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>

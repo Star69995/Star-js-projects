@@ -121,11 +121,13 @@ input[type="text"] {
     position: absolute;
     /* Position in the top left corner */
     top: 15px;
+    box-shadow: none;
 }
 
 .delete-button.red {
     color: red;
     /* Color when clicked */
+    box-shadow: none;
 }
 
 .task-row {
