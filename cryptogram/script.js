@@ -1,7 +1,3 @@
-
-
-
-
 let currentSentence = "";
 let encryptedSentence = "";
 let letterMapping = {};

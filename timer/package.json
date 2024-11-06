@@ -1,0 +1,10 @@
+{
+    "name": "timer",
+    "version": "1.0.3",
+    "main": "index.html",
+    "window": {
+        "title": "שעון עצר",
+        "width": 800,
+        "height": 600
+    }
+}
