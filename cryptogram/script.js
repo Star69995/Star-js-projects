@@ -437,7 +437,6 @@ function moveToInputBelow(currentInput) {
 }
 
 function checkSolution() {
-    updateKeyboardHighlights()
     let allFilled = true; // Check if all inputs are filled
     let allCorrect = true; // Check if all filled inputs are correct
 
@@ -474,12 +473,12 @@ function checkSolution() {
     }
 
     updateAllInputColors(); // Update input colors based on correctness
+    updateKeyboardHighlights()
 }
 
 
 
 function getHint() {
-    updateKeyboardHighlights()
     // סינון האותיות המוצפנות שעדיין לא נחשפו ומופיעות במשפט
     const unsolvedLetters = Array.from(document.querySelectorAll('.solution-letter'))
         .map(input => input.dataset.encrypted)
@@ -514,13 +513,13 @@ function getHint() {
                 input.readOnly = true;  // Lock input if the solution is correct, but allow focus
             });
     }
+    updateKeyboardHighlights()
 }
 
 
 
 
 function clearBoard() {
-    updateKeyboardHighlights()
     // Create new mappings for correct answers
     const newSolutionMapping = {};
     const newUsedLetters = new Set();
@@ -549,6 +548,7 @@ function clearBoard() {
     const message = document.getElementById('message');
     message.className = 'message';
     message.textContent = '';
+    updateKeyboardHighlights()
 }
 
 
