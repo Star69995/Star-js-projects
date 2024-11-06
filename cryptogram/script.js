@@ -1,13 +1,31 @@
+// משתנה לאחסון המשפט הנוכחי שהמשתמש מנסה לפענח
 let currentSentence = "";
-let encryptedSentence = "";
-let letterMapping = {};
-let reversedMapping = {};
-let solutionMapping = {};
-let usedLetters = new Set(); // מעקב אחר אותיות שכבר בשימוש
 
+// משתנה לאחסון המשפט המוצפן
+let encryptedSentence = "";
+
+// מילון הממפה כל אות מהאלפבית העברי לאות מוצפנת
+let letterMapping = {};
+
+// מילון הממפה כל אות מוצפנת לאות העברית המקורית
+let reversedMapping = {};
+
+// מילון לאחסון פתרונות המשתמש (אותות שנכנסו להקלטות)
+let solutionMapping = {};
+
+// סט המעקב אחר אותיות שכבר נעשה בהן שימוש
+let usedLetters = new Set();
+
+// משתנה לאחסון האלפבית העברי
 const hebrewAlphabet = 'אבגדהוזחטיכלמנסעפצקרשתךםןףץ';
 
 
+
+/**
+ * מפונקציה לערבוב אותיות במחרוזת
+ * @param {string} str - המחרוזת שיש לערבב אותיותיה
+ * @returns {string} מחרוזת עם אותיות מעורבבות
+ */
 function shuffleString(str) {
     const arr = Array.from('אבגדהוזחטיכלמנסעפצקרשתךםןףץ');
     for (let i = arr.length - 1; i > 0; i--) {
@@ -78,9 +96,10 @@ function createPuzzleUI() {
                 input.dataset.encrypted = letter;
                 input.dataset.wordIndex = wordIndex;
                 input.dataset.letterIndex = letterIndex;
+                input.inputMode = 'none'
 
                 input.addEventListener('keydown', handleKeyDown);
-                input.addEventListener('input', handleInput);
+                input.addEventListener('input', handleKeyBoardInput);
                 input.addEventListener('click', function () {
                     this.select();
                 });
@@ -118,17 +137,85 @@ function createPuzzleUI() {
     container.appendChild(wordContainer);
     updateAllInputColors(); // עדכון צבעים התחלתי
 
+    document.querySelectorAll('.solution-letter').forEach(input => {
+        input.addEventListener('focus', (event) => {
+            lastFocusedInput = event.target; // עדכון לתיבת הקלט האחרונה
+        });
+        
+    });
+    document.querySelectorAll('.solution-letter').forEach(input => {
+        input.addEventListener('focus', function (event) {
+            event.preventDefault(); // מונע את פעולת הפוקוס הרגילה
+            event.stopPropagation(); // מונע את הפוקנציה של המקלדת הניידת
+        });
+    });
+    // הוספת מאזיני האירועים
+    document.querySelectorAll('.solution-letter').forEach(input => {
+        input.addEventListener('focus', highlightMatchingLetters); // כשעומדים על תיבת הקלט
+        input.addEventListener('blur', resetHighlight); // כשהעכבר עוזב את תיבת הקלט
+    });
+
+
+
     console.log("puzzle created");
 }
 
-function handleInput(event) {
-    const input = event.target;
-    const encryptedLetter = input.dataset.encrypted;
-    let newValue = input.value.replace(/[^א-ת]/g, '');
+function highlightMatchingLetters(event) {
+    // console.log('highlightMatchingLetters called');
+    const letter = event.target.getAttribute('data-encrypted'); // מקבל את האות שהעכבר עומד עליה
+
+    // console.log(letter);
+
+    const allLetters = document.querySelectorAll(`.solution-letter[data-encrypted="${letter}"]`); // מוצא את כל האלמנטים עם אות זהה
+
+    // console.log(allLetters);
+
+    // מחליף את צבע הרקע של כל האלמנטים עם האות הזהה
+    allLetters.forEach(element => {
+        element.style.backgroundColor = 'lightgray'; // צבע רקע להדגשה
+    });
+}
+
+function resetHighlight() {
+    const allLetters = document.querySelectorAll('.solution-letter'); // מוצא את כל האלמנטים
+    allLetters.forEach(element => {
+        element.style.backgroundColor = ''; // מחזיר את צבע הרקע לברירת המחדל
+    });
+}
+
+
+let lastFocusedInput = null; // משתנה גלובלי לשמירת הפוקוס האחרון
+
+
+
+
+
+
+// פונקציה שתטפל באירוע קלט מהמקלדת
+function handleKeyBoardInput(event) {
+    const letter = event.target.value;  // מקבל את האות שהוזנה
+    handleLetterInput(letter);  // שולח את האות לפונקציה נוספת
+}
+
+function useKey (letter) {
+    if (lastFocusedInput) {
+        lastFocusedInput.focus()
+        handleLetterInput(letter);
+    }
+}
+
+
+
+function handleLetterInput(letter) {
+    const focusedInput = document.querySelector('.solution-letter:focus');
+
+
+    const encryptedLetter = focusedInput.dataset.encrypted;
+    let newValue = letter.replace(/[^א-ת]/g, '');
 
     if (newValue.length > 0) {
 
-        // בדוק את צבע הרקע של כל השדות שבהם האות נמצאת
+        // אם האות כבר אושרה כנכונה, אז אל תאפשר לכתוב אותה שוב
         const existingInputs = document.querySelectorAll(`.solution-letter`);
 
         const isReadOnly = Array.from(existingInputs).some(inp => {
@@ -137,7 +224,7 @@ function handleInput(event) {
         });
 
         if (isReadOnly) {
-            input.value = '';
+            focusedInput.value = '';
             return;
         }
 
@@ -160,7 +247,7 @@ function handleInput(event) {
             }
         }
 
-        input.value = newValue;
+        focusedInput.value = newValue;
         solutionMapping[encryptedLetter] = newValue;
         usedLetters.add(newValue);
 
@@ -169,20 +256,23 @@ function handleInput(event) {
                 inp.value = newValue;
             });
 
-        moveToNextInput(input);
+        moveToNextInput(focusedInput);
     } else {
         if (solutionMapping[encryptedLetter]) {
             usedLetters.delete(solutionMapping[encryptedLetter]);
         }
         delete solutionMapping[encryptedLetter];
-        updateInputColor(input);
+        document.querySelectorAll(`.solution-letter[data-encrypted="${encryptedLetter}"]`)
+            .forEach(input => input.style.backgroundColor = 'white');
+
+
         // Clear the letter in all instances when deleted
         document.querySelectorAll(`.solution-letter[data-encrypted="${encryptedLetter}"]`)
             .forEach(inp => inp.value = '');
 
     }
     // Check if the input is a valid Hebrew letter
-    if (event.inputType === 'insertText' && !/^[א-ת]$/.test(newValue)) {
+    if (!/^[א-ת]$/.test(letter)) {
         const message = document.getElementById('message');
         message.className = 'message error'; // Set class for styling
         message.textContent = 'נא לשים לב שהמקלדת שלך על עברית.'; // Set message
@@ -192,6 +282,7 @@ function handleInput(event) {
         message.className = 'message'; // Reset class
         message.textContent = ''; // Clear message
     }
+    updateKeyboardHighlights()
 }
 
 function updateInputColor(input) {
@@ -346,6 +437,7 @@ function moveToInputBelow(currentInput) {
 }
 
 function checkSolution() {
+    updateKeyboardHighlights()
     let allFilled = true; // Check if all inputs are filled
     let allCorrect = true; // Check if all filled inputs are correct
 
@@ -387,6 +479,7 @@ function checkSolution() {
 
 
 function getHint() {
+    updateKeyboardHighlights()
     // סינון האותיות המוצפנות שעדיין לא נחשפו ומופיעות במשפט
     const unsolvedLetters = Array.from(document.querySelectorAll('.solution-letter'))
         .map(input => input.dataset.encrypted)
@@ -427,6 +520,7 @@ function getHint() {
 
 
 function clearBoard() {
+    updateKeyboardHighlights()
     // Create new mappings for correct answers
     const newSolutionMapping = {};
     const newUsedLetters = new Set();
@@ -555,3 +649,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+
+function updateKeyboardHighlights() {
+    console.log('Updating keyboard highlights...');
+    const keyboardKeys = document.querySelectorAll('.key'); // Get all keyboard keys
+
+    Array.from(keyboardKeys).forEach(key => {
+        const letter = key.textContent.trim();  // Ensure there is no extra whitespace
+
+        console.log(letter);
+
+        // Highlight if the letter has been used
+        if (usedLetters.has(letter)) {
+            key.style.backgroundColor = '#dedede'; // Used but unconfirmed
+            key.style.color = '#383838';
+        } else {
+            key.style.backgroundColor = ''; // Reset color for unused letters
+        }
+    });
+}
+
+function toggleKeyboard() {
+    const keyboardContainer = document.getElementById("keyboardContainer");
+    const button = document.querySelector("#toggleKeyboard");  // גישה לכפתור
+
+    // שינוי תצוגת המקלדת
+    keyboardContainer.style.display = (keyboardContainer.style.display === "none") ? "block" : "none";
+
+    // עדכון טקסט הכפתור בהתאם למצב המקלדת
+    if (keyboardContainer.style.display === "none") {
+        button.textContent = "הצג מקלדת";  // אם המקלדת מוסתרת
+    } else {
+        button.textContent = "הסתר מקלדת";  // אם המקלדת מוצגת
+    }
+}
+
+
