@@ -1,10 +1,17 @@
-:root{
+:root {
     --primary-color: #1a73e8;
     --secondary-color: #f0f2f5;
     --third-color: #fff;
     --fourth-color: #e4e6eb;
     --puzzle-font-size: 1.5rem;
+
+    touch-action: none;
+    touch-action: pan-y;
+    /* touch-action:manipulation; */
+
+    height: 100%
 }
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -18,7 +25,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2rem;
+    /* padding: 2rem; */
+    scroll-behavior: smooth;
 }
 
 .container {
@@ -27,7 +35,10 @@ body {
     padding: 2rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     max-width: 1500px;
-    width: 100%;
+    /* border: #155724 solid 1px; */
+    margin: 2rem;
+    width: 90%;
+
 }
 
 h1 {
@@ -113,15 +124,18 @@ h2 {
     background-color: #90ee9044;
     /* color: #155724; */
 }
+
 .solution-letter.incorrect {
     background-color: #ffb6c662;
     /* color: #721c24; */
 }
-.solution-letter.hint{
+
+.solution-letter.hint {
     background-color: #cde5fc7a;
 }
-.solution-letter.active{
-    background-color: rgba(212, 212, 212, 0.301) ;
+
+.solution-letter.active {
+    background-color: rgba(212, 212, 212, 0.301);
 }
 
 /* עיצוב קונטיינר המילים */
@@ -289,14 +303,15 @@ button:hover {
     align-items: center;
     /* gap: 20%; */
     width: 100%;
-    position: fixed;
+    position: sticky;
     /* להצמיד את המקלדת לתחתית המסך */
     bottom: 0;
-    left: 0;
     padding: 10px;
     background-color: #f0f0f0;
     /* רקע למקלדת */
     padding-bottom: 20px;
+    z-index: 1000;
+    transform: translateY(0);
 
 }
 
@@ -305,6 +320,17 @@ button:hover {
         padding-bottom: 40px;
     }
 }
+
+/* @media (max-width: 600px) {
+    #keyboard {
+        position: fixed;
+    }
+
+    .container {
+        margin-bottom: 30%;
+        bottom: 0;
+    }
+} */
 
 .keyboard-row {
     display: flex;
@@ -327,7 +353,7 @@ button:hover {
     height: 12vw;
     max-height: 50px;
     /* גובה מותאם למסך */
-    border:none;
+    border: none;
     border-radius: 5px;
     cursor: pointer;
     background-color: #fff;
@@ -343,24 +369,10 @@ button:hover {
 .key.used {
     background-color: #dedede;
     color: #383838
-    /* blue for used */
+        /* blue for used */
 }
 
-
-
-#keyboard{
+#keyboard {
     background-color: rgb(203, 215, 241);
 }
-
-
-
-
-
-
-
-
-
-
-
-
 

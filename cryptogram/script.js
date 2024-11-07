@@ -84,6 +84,7 @@ function createPuzzleUI() {
 
                 const input = document.createElement('input');
                 input.className = 'solution-letter';
+
                 input.maxLength = 1;
                 input.dataset.encrypted = letter;
                 input.dataset.wordIndex = wordIndex;
@@ -122,18 +123,25 @@ function createPuzzleUI() {
     updateAllInputColors(); // עדכון צבעים התחלתי
     updateKeyboardHighlights();
 
+    // Add event listeners for the focus, blur, and click events
     document.querySelectorAll('.solution-letter').forEach(input => {
-        input.addEventListener('focus', (event) => {
-            lastFocusedInput = event.target; // עדכון לתיבת הקלט האחרונה
+        input.addEventListener('focus', function (event) {
+            lastFocusedInput = event.target; // Update the last focused input
+            // window.scrollTo({
+            //     top: this.offsetTop,
+            //     behavior: 'smooth'
+            // });
+            // const keyboard = document.querySelector('#keyboard');
+            // keyboard.style.backgroundColor = getRandomColor();
         });
 
+
+        // Add listeners for highlighting and keyboard actions
+        input.addEventListener('focus', highlightMatchingLetters); // When focused, highlight matching letters
+        input.addEventListener('blur', resetHighlight); // When blurred, reset highlight
+        input.addEventListener('click', showKeyboard); // When clicked, show keyboard
     });
-    // הוספת מאזיני האירועים
-    document.querySelectorAll('.solution-letter').forEach(input => {
-        input.addEventListener('focus', highlightMatchingLetters); // כשעומדים על תיבת הקלט
-        input.addEventListener('blur', resetHighlight); // כשהעכבר עוזב את תיבת הקלט
-        input.addEventListener('click', showKeyboard);
-    });
+
 
     console.log("puzzle created");
 }
@@ -339,6 +347,8 @@ function moveToNextInput(currentInput) {
     } while ((allInputs[currentIndex].readOnly || allInputs[currentIndex].value) &&
         currentIndex !== allInputs.indexOf(currentInput)); // Check if it's read-only or has a value
 
+
+
     allInputs[currentIndex].focus();
     allInputs[currentIndex].select();
 }
@@ -352,6 +362,7 @@ function moveToPreviousInput(currentInput) {
     do {
         currentIndex = (currentIndex - 1 + allInputs.length) % allInputs.length; // Move to previous input, wrap around if needed
     } while (allInputs[currentIndex].readOnly && currentIndex !== allInputs.indexOf(currentInput));
+
 
     allInputs[currentIndex].focus();
     allInputs[currentIndex].select();
@@ -658,9 +669,15 @@ function showKeyboard() {
     keyboardContainer.style.display = "block";
 
     const button = document.querySelector("#toggleKeyboard");  // גישה לכפתור
-
-    button.textContent = "הצג מקלדת";
-
+    button.textContent = "הסתר מקלדת";
 }
 
 
+function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
