@@ -19,8 +19,6 @@ let usedLetters = new Set();
 // משתנה לאחסון האלפבית העברי
 const hebrewAlphabet = 'אבגדהוזחטיכלמנסעפצקרשתךםןףץ';
 
-
-
 /**
  * מפונקציה לערבוב אותיות במחרוזת
  * @param {string} str - המחרוזת שיש לערבב אותיותיה
@@ -61,7 +59,6 @@ function encryptSentence(sentence) {
         .join('');
 }
 
-
 function createPuzzleUI() {
     const container = document.getElementById('puzzleContainer');
     container.innerHTML = '';
@@ -80,8 +77,6 @@ function createPuzzleUI() {
 
             const letterGroup = document.createElement('div');
             letterGroup.className = 'letter-group';
-
-
 
             if (hebrewAlphabet.includes(letter)) {
                 encryptedSpan.textContent = letter; // Encrypt the letter
@@ -119,15 +114,13 @@ function createPuzzleUI() {
                 letterGroup.appendChild(input);
                 wordGroup.appendChild(letterGroup);
             }
-
-
         });
-
         wordContainer.appendChild(wordGroup);
     });
 
     container.appendChild(wordContainer);
     updateAllInputColors(); // עדכון צבעים התחלתי
+    updateKeyboardHighlights();
 
     document.querySelectorAll('.solution-letter').forEach(input => {
         input.addEventListener('focus', (event) => {
@@ -139,18 +132,14 @@ function createPuzzleUI() {
     document.querySelectorAll('.solution-letter').forEach(input => {
         input.addEventListener('focus', highlightMatchingLetters); // כשעומדים על תיבת הקלט
         input.addEventListener('blur', resetHighlight); // כשהעכבר עוזב את תיבת הקלט
+        input.addEventListener('click', showKeyboard);
     });
-
 
     console.log("puzzle created");
 }
 
-
 function highlightMatchingLetters(event) {
-
     const letter = event.target.getAttribute('data-encrypted'); // מקבל את האות שהעכבר עומד עליה
-
-
     const allLetters = document.querySelectorAll(`.solution-letter[data-encrypted="${letter}"]`); // מוצא את כל האלמנטים עם אות זהה
 
     // מחליף את צבע הרקע של כל האלמנטים עם האות הזהה
@@ -166,13 +155,7 @@ function resetHighlight() {
     });
 }
 
-
 let lastFocusedInput = null; // משתנה גלובלי לשמירת הפוקוס האחרון
-
-
-
-
-
 
 // פונקציה שתטפל באירוע קלט מהמקלדת
 function handleKeyBoardInput(event) {
@@ -188,15 +171,12 @@ function useKey(letter) {
     }
 }
 
-
-
 function handleLetterInput(letter) {
     const focusedInput = document.querySelector('.solution-letter:focus');
 
     if (focusedInput.readOnly) {
         return
     }
-
 
     const encryptedLetter = focusedInput.dataset.encrypted;
     let newValue = letter.replace(/[^א-ת]/g, '');
@@ -233,12 +213,9 @@ function handleLetterInput(letter) {
             return;
         }
 
-
-
         // Reset background color for all instances of the same letter
         document.querySelectorAll(`.solution-letter[data-encrypted="${encryptedLetter}"]`)
             .forEach(inp => inp.classList.remove('incorrect'));
-
 
         newValue = newValue[newValue.length - 1];
 
@@ -262,7 +239,7 @@ function handleLetterInput(letter) {
             });
 
         moveToNextInput(focusedInput);
-    } 
+    }
     // Check if the input is a valid Hebrew letter
     else {
         // todo: restore previous value (do it by saving everything in local storage)
@@ -271,12 +248,11 @@ function handleLetterInput(letter) {
         const message = document.getElementById('message');
         message.className = 'message error'; // Set class for styling
         message.textContent = 'נא לשים לב שהמקלדת שלך על עברית.'; // Set message
-    } 
+    }
     updateKeyboardHighlights()
 }
 
 function deleteLetter(encryptedLetter) {
-
     if (solutionMapping[encryptedLetter]) {
         usedLetters.delete(solutionMapping[encryptedLetter]);
     }
@@ -284,18 +260,15 @@ function deleteLetter(encryptedLetter) {
     document.querySelectorAll(`.solution-letter[data-encrypted="${encryptedLetter}"]`)
         .forEach(input => input.classList.remove('incorrect'));
 
-
     // Clear the letter in all instances when deleted
     document.querySelectorAll(`.solution-letter[data-encrypted="${encryptedLetter}"]`)
         .forEach(inp => inp.value = '');
 }
 
-
 function updateInputColor(input) {
     const encryptedLetter = input.dataset.encrypted;
     const userSolution = solutionMapping[encryptedLetter];
     const correctSolution = reversedMapping[encryptedLetter];
-
 
     // בדיקה אם הרקע כבר כחול בהיר 
     if (input.classList.contains('hint')) {
@@ -315,7 +288,6 @@ function updateInputColor(input) {
         input.classList.add('incorrect');
     }
 }
-
 
 function updateAllInputColors() {
     document.querySelectorAll('.solution-letter').forEach(updateInputColor);
@@ -454,13 +426,11 @@ function checkSolution() {
         const userSolution = input.value;
         const correctSolution = reversedMapping[encryptedLetter];
 
-
         // Check if input is filled
         if (!userSolution) {
             allFilled = false; // If any input is empty, set allFilled to false
             return; // Exit early since we found an empty input
         }
-
         // Check if the user solution matches the correct solution
         if (userSolution !== correctSolution) {
             allCorrect = false; // If there's a mismatch, set allCorrect to false
@@ -485,7 +455,6 @@ function checkSolution() {
 }
 
 
-
 function getHint() {
     // סינון האותיות המוצפנות שעדיין לא נחשפו ומופיעות במשפט
     const unsolvedLetters = Array.from(document.querySelectorAll('.solution-letter'))
@@ -497,19 +466,19 @@ function getHint() {
         const randomLetter = unsolvedLetters[Math.floor(Math.random() * unsolvedLetters.length)];
         const correctSolution = reversedMapping[randomLetter];
 
-        // // אם האות כבר בשימוש, מוחקים אותה מהמיקום הקודם
-        // if (usedLetters.has(correctSolution)) {
-        //     const previousEncryptedLetter = Object.keys(solutionMapping).find(key => solutionMapping[key] === correctSolution);
-        //     if (previousEncryptedLetter) {
-        //         delete solutionMapping[previousEncryptedLetter];
-        //         document.querySelectorAll(`.solution-letter[data-encrypted="${previousEncryptedLetter}"]`)
-        //             .forEach(inp => {
-        //                 inp.value = '';
-        //                 // inp.style.backgroundColor = 'white'; // Reset color
-        //                 input.classList.remove('hint');
-        //             });
-        //     }
-        // }
+        // אם האות כבר בשימוש, מוחקים אותה מהמיקום הקודם
+        if (usedLetters.has(correctSolution)) {
+            const previousEncryptedLetter = Object.keys(solutionMapping).find(key => solutionMapping[key] === correctSolution);
+            if (previousEncryptedLetter) {
+                delete solutionMapping[previousEncryptedLetter];
+                document.querySelectorAll(`.solution-letter[data-encrypted="${previousEncryptedLetter}"]`)
+                    .forEach(inp => {
+                        inp.value = '';
+                        // Reset color
+                        inp.classList.remove('hint', 'correct', 'incorrect');
+                    });
+            }
+        }
 
         // הגדרת הרמז והוספת צבע כחול לכל ההופעות
         solutionMapping[randomLetter] = correctSolution;
@@ -524,8 +493,6 @@ function getHint() {
     }
     updateKeyboardHighlights()
 }
-
-
 
 
 function clearBoard() {
@@ -573,8 +540,6 @@ function loadDictionary() {
             return dictionary;
         });
 }
-
-
 
 // פונקציה מעודכנת ל-reset
 function resetGame() {
@@ -631,10 +596,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-
-
-
-
 // Modal functionality
 function showInstructions() {
     const modal = document.getElementById('instructionsModal');
@@ -690,6 +651,16 @@ function toggleKeyboard() {
     } else {
         button.textContent = "הסתר מקלדת";  // אם המקלדת מוצגת
     }
+}
+
+function showKeyboard() {
+    const keyboardContainer = document.getElementById("keyboard");
+    keyboardContainer.style.display = "block";
+
+    const button = document.querySelector("#toggleKeyboard");  // גישה לכפתור
+
+    button.textContent = "הצג מקלדת";
+
 }
 
 
