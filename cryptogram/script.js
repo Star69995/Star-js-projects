@@ -194,10 +194,12 @@ function handleLetterInput(letter) {
             moveToPreviousInput(focusedInput);
         }
         deleteLetter(encryptedLetter);
+        updateKeyboardHighlights()
         return
     }
     else if (letter == '') {
         deleteLetter(encryptedLetter);
+        updateKeyboardHighlights()
         return
     }
 
