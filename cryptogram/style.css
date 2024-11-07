@@ -321,17 +321,6 @@ button:hover {
     }
 }
 
-/* @media (max-width: 600px) {
-    #keyboard {
-        position: fixed;
-    }
-
-    .container {
-        margin-bottom: 30%;
-        bottom: 0;
-    }
-} */
-
 .keyboard-row {
     display: flex;
     gap: 5px;
