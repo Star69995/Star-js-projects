@@ -127,12 +127,6 @@ function createPuzzleUI() {
     document.querySelectorAll('.solution-letter').forEach(input => {
         input.addEventListener('focus', function (event) {
             lastFocusedInput = event.target; // Update the last focused input
-            // window.scrollTo({
-            //     top: this.offsetTop,
-            //     behavior: 'smooth'
-            // });
-            // const keyboard = document.querySelector('#keyboard');
-            // keyboard.style.backgroundColor = getRandomColor();
         });
 
 
