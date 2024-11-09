@@ -233,6 +233,10 @@ function handleLetterInput(letter) {
             }
         }
 
+        if (focusedInput.value) {
+            usedLetters.delete(focusedInput.value); // Remove previous letter if exists
+        }
+        
         focusedInput.value = newValue;
         solutionMapping[encryptedLetter] = newValue;
         usedLetters.add(newValue);
