@@ -610,7 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Modal functionality
 function showInstructions() {
     const modal = document.getElementById('instructionsModal');
-    modal.style.display = 'block';
+    modal.style.display = 'flex';
     // hideKeyboard();
 }
 
