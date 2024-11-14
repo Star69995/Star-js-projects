@@ -611,6 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function showInstructions() {
     const modal = document.getElementById('instructionsModal');
     modal.style.display = 'block';
+    // hideKeyboard();
 }
 
 // כשהדף נטען, נוסיף את ההתנהגות לכפתור הסגירה ולחיצה מחוץ למודל
@@ -672,3 +673,10 @@ function showKeyboard() {
     button.textContent = "הסתר מקלדת";
 }
 
+function hideKeyboard() {
+    const keyboardContainer = document.getElementById("keyboard");
+    keyboardContainer.style.display = "none";
+
+    const button = document.querySelector("#toggleKeyboard");  // גישה לכפתור
+    button.textContent = "הצג מקלדת";
+}
