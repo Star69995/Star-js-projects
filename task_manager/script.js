@@ -110,9 +110,15 @@ function addTaskToList(tasksContainer, task) {
         task.completed = checkbox.checked; // Update task completion status
         saveTasksToLocalStorage(); // Save all tasks when a task is checked/unchecked
     };
+    // Add accessible attributes to the checkbox
+    checkbox.id = `task-${task.name}`; // Ensure a unique ID for the label
+    checkbox.setAttribute("aria-checked", task.completed);
+
 
     const label = document.createElement("label");
     label.textContent = task.name;
+    // Associate the label with the checkbox
+    label.setAttribute("for", `task-${task.name}`);
 
     // Append checkbox and label to the content container
     taskContent.appendChild(checkbox);
@@ -123,6 +129,8 @@ function addTaskToList(tasksContainer, task) {
     deleteTaskButton.innerHTML = "X"; // Using HTML entity for a black cross
     deleteTaskButton.classList.add("delete-button"); // Add a class for styling
     deleteTaskButton.onclick = () => confirmDeleteTask(taskDiv, task.name, tasksContainer);
+    // Add accessible attributes to the delete button
+    deleteTaskButton.setAttribute("aria-label", `Delete task ${task.name}`);
 
     // Append the task content and delete button to the taskDiv
     taskDiv.appendChild(taskContent);
@@ -136,6 +144,7 @@ let deleteConfirmationActive = false; // Global flag to track delete confirmatio
 
 function confirmDeleteTask(taskDiv, taskName, tasksContainer) {
     const deleteTaskButton = taskDiv.querySelector('button:last-child');
+    console.log(deleteTaskButton);
 
     if (!deleteConfirmationActive) {
         deleteConfirmationActive = true; // Set the flag
@@ -156,10 +165,12 @@ function confirmDeleteTask(taskDiv, taskName, tasksContainer) {
 
 // Add an event listener to the document to cancel the confirmation on outside clicks
 document.addEventListener('click', (event) => {
+
     if (deleteConfirmationActive && !event.target.closest('.delete-button')) {
         const allDeleteButtons = document.querySelectorAll('.delete-button');
+
         allDeleteButtons.forEach(button => {
-            deleteTaskButton.classList.remove("red"); // Remove red class
+            button.classList.remove("red"); // Remove red class
         });
         deleteConfirmationActive = false; // Reset the flag
     }
