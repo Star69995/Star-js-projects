@@ -41,6 +41,8 @@ h1 {
     backdrop-filter: blur(5px);
 }
 
+
+
 .info-item {
     display: flex;
     flex-direction: column;
@@ -83,6 +85,10 @@ h1 {
     margin: 0 5px;
     font-weight: bold;
     color: #4a154b;
+}
+
+#sum {
+    font-size: 36px;
 }
 
 input[type="number"] {
@@ -204,7 +210,7 @@ select {
     padding: 10px;
     background: rgba(255, 255, 255, 0.3);
     border-radius: 10px;
-        justify-content: space-around
+    justify-content: space-around
 }
 
 .operation-btn {
@@ -232,21 +238,7 @@ select {
     /* max-width: 300px; */
 }
 
-/* שבירה לשני פריטים בשורה אם אין מקום לארבעה */
-@media (max-width: 450px) {
-    .operation-select>* {
-        flex: 1 1 calc(50% - 40px);
-        /* שני פריטים בשורה */
-    }
-}
 
-/* שבירה לפריט אחד בשורה אם אין מקום לשניים */
-@media (max-width: 300px) {
-    .operation-select>* {
-        flex: 1 1 100%;
-        /* פריט אחד בשורה */
-    }
-}
 
 .operation-btn.active {
     background: #6c5ce7;
@@ -274,4 +266,61 @@ select {
     border-radius: 10px;
     font-size: 18px;
     transition: all 0.3s ease;
+}
+
+/* שבירה לשני פריטים בשורה אם אין מקום לארבעה */
+@media (max-width: 450px) {
+    .operation-select>* {
+        flex: 1 1 calc(50% - 40px);
+        /* שני פריטים בשורה */
+    }
+
+    #num1,
+    #num2,
+    #op {
+        margin: 0;
+    }
+
+    .exercise {
+        gap: 0px;
+    }
+}
+
+/* שבירה לפריט אחד בשורה אם אין מקום לשניים */
+@media (max-width: 300px) {
+    .operation-select>* {
+        flex: 1 1 100%;
+        /* פריט אחד בשורה */
+    }
+}
+
+
+@media (max-width: 600px) {
+    .info-value {
+        font-size: 0.9em;
+    }
+
+    .game-info {
+        gap: 5px;
+    }
+}
+
+@media (max-width: 510px) {
+    .info-item {
+        min-width: 50px;
+        width: fit-content;
+        padding: 10px 10px;
+    }
+
+    #num1,
+    #num2,
+    #op,
+    #sum {
+        font-size: clamp(20px, 8vw, 36px);
+    }
+
+    #sum {
+        padding: 10px 10px;
+        width: 90px;
+    }
 }
