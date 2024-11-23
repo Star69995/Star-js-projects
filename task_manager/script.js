@@ -26,11 +26,15 @@ function createListDiv(listValue) {
     listDiv.classList.add("list");
     listDiv.innerHTML = `<h2>${listValue}</h2><div class="tasks"></div>`;
 
+    // Create a container for the task input and button
+    const inputContainer = document.createElement("div");
+    inputContainer.classList.add("task-input-container"); // Add class for styling
+
     // Create input field for adding tasks to this list
     const taskInput = document.createElement("input");
     taskInput.type = "text";
     taskInput.placeholder = "הוסף משימה לרשימה זו";
-    listDiv.appendChild(taskInput);
+    inputContainer.appendChild(taskInput);
 
     // Create button to add tasks to this list
     const taskButton = document.createElement("button");
@@ -43,8 +47,10 @@ function createListDiv(listValue) {
             taskInput.value = ""; // Clear task input after adding
         }
     };
+    inputContainer.appendChild(taskButton);
 
-    listDiv.appendChild(taskButton);
+    // Append the input container to the list div
+    listDiv.appendChild(inputContainer);
 
     // Create delete button for the list
     const deleteListButton = document.createElement("button");
@@ -53,9 +59,9 @@ function createListDiv(listValue) {
     deleteListButton.onclick = () => confirmDeleteList(listDiv, listValue);
     listDiv.appendChild(deleteListButton);
 
-
     return listDiv;
 }
+
 
 function confirmDeleteList(listDiv, listValue) {
     const deleteListButton = listDiv.querySelector('.delete-button');

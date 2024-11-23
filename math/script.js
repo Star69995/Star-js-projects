@@ -117,9 +117,20 @@ function calculateResult() {
     }
 }
 
+function getDifficultyMultiplier() {
+    switch (difficultySelect.value) {
+        case 'easy': return 1;  // Lowest multiplier
+        case 'medium': return 2; // Medium multiplier
+        case 'hard': return 3;  // Highest multiplier
+        default: return 1;  // Fallback
+    }
+}
+
 function updateScore(correct) {
+    const difficultyMultiplier = getDifficultyMultiplier(); // Get multiplier based on difficulty
+
     if (correct) {
-        score += 10 * (streak + 1);
+        score +=  (streak + 1) * difficultyMultiplier;
         streak++;
         scoreEle.classList.add('score-animation');
         setTimeout(() => scoreEle.classList.remove('score-animation'), 500);
