@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Weather API</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="form-control">
+        <label for="inputCity">Enter City:</label>
+        <input type="text" id="inputCity" placeholder="U.S.A" autofocus />
+        <button>Search</button>
+      </div>
+
+      <div id="weatherInfo">
+        <img />
+        <h1 id="city"></h1>
+        <p id="temp"></p>
+        <p id="description"></p>
+        <p id="errorMessage"></p>
+      </div>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
