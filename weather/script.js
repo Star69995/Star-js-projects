@@ -76,7 +76,8 @@ function generateHourlyForecastHTML(hourlyData) {
             <p>${new Date(entry.dt * 1000).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</p>
             <p>${entry.main && entry.main.temp ? Math.round(entry.main.temp) : 'לא זמין'}°C</p>
             <p class="two-lines">${entry.weather && entry.weather[0] ? entry.weather[0].description : 'לא זמין'}</p>
-            <p> רוח: ${entry.wind && entry.wind.speed ? entry.wind.speed : 'לא זמין'} מ/ש</p>
+<p>רוח: ${entry.wind && entry.wind.speed ? entry.wind.speed.toFixed(1) : 'לא זמין'} מ/ש</p>
+
             <p>סיכוי גשם: ${entry.pop ? (entry.pop * 100).toFixed(0)+'%': 'לא זמין'}</p>
             <p>ראות: ${entry.visibility ? entry.visibility / 1000 : 'לא זמין'} ק"מ</p>
         </div>
