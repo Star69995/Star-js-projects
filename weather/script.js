@@ -15,15 +15,6 @@ const clothingRecommendationElement = document.getElementById('clothing-recommen
 const hourlyForecastElement = document.getElementById('hourly-forecast');
 const dailyForecastElement = document.getElementById('daily-forecast');
 
-
-function saveCityToLocalStorage(city) {
-    let history = JSON.parse(localStorage.getItem('weatherHistory')) || [];
-    if (!history.includes(city)) {
-        history.push(city);
-        localStorage.setItem('weatherHistory', JSON.stringify(history));
-    }
-}
-
 // פונקציה להצגת מזג האוויר
 async function displayWeather(data, city) {
     cityNameElement.textContent = city || 'המיקום הנוכחי';
@@ -43,13 +34,15 @@ async function displayWeather(data, city) {
 
     const forecastData = await response.json();
 
+    console.log(forecastData);
+
     // הצגת תחזית שעתית (הפונקציה תטען בנפרד)
     await display3HourForecast(forecastData);
 
     // הצגת תחזית יומית (הפונקציה תטען בנפרד)
     await displayDailyForecast(forecastData);
 
-    
+
 }
 
 // פונקציה ליצירת תחזית יומית
@@ -76,17 +69,19 @@ async function display3HourForecast(data) {
     hourlyForecastElement.innerHTML = hourly;
 }
 
-// Adjusted function to generate HTML for hourly forecast
+// Adjusted function to generate HTML for 3-hourly forecast
 function generateHourlyForecastHTML(hourlyData) {
-    return hourlyData.slice(0, 12).map(entry => `
-        <div>
+    return hourlyData.map(entry => `
+        <div class="weather-details">
             <p>${new Date(entry.dt * 1000).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</p>
             <p>${entry.main && entry.main.temp ? Math.round(entry.main.temp) : 'לא זמין'}°C</p>
-            <p>${entry.weather && entry.weather[0] ? entry.weather[0].description : 'לא זמין'}</p>
+            <p class="two-lines">${entry.weather && entry.weather[0] ? entry.weather[0].description : 'לא זמין'}</p>
+            <p> רוח: ${entry.wind && entry.wind.speed ? entry.wind.speed : 'לא זמין'} מ/ש</p>
+            <p>סיכוי גשם: ${entry.pop ? (entry.pop * 100).toFixed(0)+'%': 'לא זמין'}</p>
+            <p>ראות: ${entry.visibility ? entry.visibility / 1000 : 'לא זמין'} ק"מ</p>
         </div>
     `).join('');
 }
-
 // Adjusted function to display daily forecast
 async function displayDailyForecast(data) {
     if (!data || !data.list) {
@@ -100,22 +95,100 @@ async function displayDailyForecast(data) {
 
 // Adjusted function to generate HTML for daily forecast
 function generateDailyForecastHTML(dailyData) {
-    return dailyData.filter((entry, index) => index % 8 === 0).map(day => `
-        <div>
-            <p>${new Date(day.dt * 1000).toLocaleDateString('he-IL')}</p>
-            <p>מינימום: ${day.main && day.main.temp_min ? Math.round(day.main.temp_min) : 'לא זמין'}°C</p>
-            <p>מקסימום: ${day.main && day.main.temp_max ? Math.round(day.main.temp_max) : 'לא זמין'}°C</p>
-        </div>
-    `).join('');
+    // קיבוץ נתונים לפי תאריך
+    const groupedByDate = {};
+
+    dailyData.forEach(entry => {
+        const date = new Date(entry.dt * 1000).toLocaleDateString('he-IL');
+        if (!groupedByDate[date]) {
+            groupedByDate[date] = [];
+        }
+        groupedByDate[date].push(entry);
+    });
+
+    // יצירת HTML לכל יום
+    return Object.entries(groupedByDate).map(([date, entries]) => {
+        const entriesHTML = entries.map((entry, index) => {
+            const time = new Date(entry.dt * 1000).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+            return `
+                <div class="time-entry">
+                    <h4 class="time">${time}</h4>
+                    <div class="weather-details">
+                        <p>טמפרטורה: ${entry.main?.temp_min ? Math.round(entry.main.temp_min) : 'לא זמין'}°C</p>
+                        <p>תיאור: ${entry.weather?.[0]?.description || 'לא זמין'}</p>
+                        <p>מהירות רוח: ${entry.wind?.speed ? entry.wind.speed.toFixed(1) : 'לא זמין'} מ/ש</p>
+                        ${entry.pop ? `<p>סיכוי לגשם: ${(entry.pop * 100).toFixed(0)}%</p>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="day-container" dir="rtl">
+                <h3 class="date-header">${date}</h3>
+                <div class="entries-container">
+                    ${entriesHTML}
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 
 
-function getClothingRecommendation(temp) {
-    if (temp < 10) return 'לבש מעיל חם וכובע.';
-    if (temp < 20) return 'לבש סוודר או ג\'קט קל.';
-    if (temp < 30) return 'לבש חולצה קצרה ומכנסיים קלים.';
-    return 'לבש בגדים קלים ושתה הרבה מים.';
+function getClothingRecommendation(temp, feelsCold = false, feelsHot = false) {
+    let baseRecommendation = '';
+    let sensitiveToHotRecommendation = '';
+    let sensitiveToColdRecommendation = '';
+
+    if (temp < 10) {
+        baseRecommendation = 'מומלץ ללבוש שכבות: חולצה ארוכה, סוודר חם ומעיל עבה. כדאי להוסיף צעיף, כפפות וכובע חם.';
+        sensitiveToHotRecommendation = 'אם אתם רגישים לחום - אפשר להסתפק בשכבה פחות: מעיל בינוני או סוודר עבה בלבד.';
+        sensitiveToColdRecommendation = 'אם אתם רגישים לקור - מומלץ להוסיף שכבה תרמית מתחת לבגדים, גרביים עבות וצעיף שמכסה גם את הצוואר.';
+    }
+    else if (temp < 15) {
+        baseRecommendation = 'מומלץ ללבוש חולצה ארוכה, סוודר ומעיל קל או ג\'קט. כדאי לקחת צעיף.';
+        sensitiveToHotRecommendation = 'אם אתם רגישים לחום - סוודר עבה או ג\'קט יספיקו.';
+        sensitiveToColdRecommendation = 'אם אתם רגישים לקור - מומלץ להוסיף שכבה נוספת ולשים דגש על כיסוי הצוואר והידיים.';
+    }
+    else if (temp < 20) {
+        baseRecommendation = 'מומלץ ללבוש חולצה ארוכה וסוודר או ג\'קט קל. קחו שכבה נוספת למקרה שיהיה קר.';
+        sensitiveToHotRecommendation = 'אם אתם רגישים לחום - חולצה ארוכה עם ג\'קט דק יספיקו.';
+        sensitiveToColdRecommendation = 'אם אתם רגישים לקור - מומלץ להוסיף סוודר דק מתחת לג\'קט.';
+    }
+    else if (temp < 25) {
+        baseRecommendation = 'מומלץ ללבוש חולצה קצרה עם שכבה נוספת כמו חולצה ארוכה דקה או קרדיגן קל.';
+        sensitiveToHotRecommendation = 'אם אתם רגישים לחום - חולצה קצרה תספיק, קחו שכבה נוספת בתיק.';
+        sensitiveToColdRecommendation = 'אם אתם רגישים לקור - מומלץ ללבוש חולצה ארוכה וסוודר דק.';
+    }
+    else if (temp < 30) {
+        baseRecommendation = 'מומלץ ללבוש בגדים קלים: חולצה קצרה ומכנסיים קלים. כדאי לקחת כובע להגנה מהשמש.';
+        sensitiveToHotRecommendation = 'אם אתם רגישים לחום - בחרו בבגדים מבד נושם במיוחד, רצוי בצבעים בהירים.';
+        sensitiveToColdRecommendation = 'אם אתם רגישים לקור - אפשר להוסיף חולצה דקה ארוכה מעל החולצה הקצרה.';
+    }
+    else {
+        baseRecommendation = 'מומלץ ללבוש בגדים קלים מאוד: חולצה קצרה ומכנסיים קצרים. חשוב להגן על העור עם קרם הגנה וכובע רחב שוליים.';
+        sensitiveToHotRecommendation = 'אם אתם רגישים לחום - הימנעו משהייה בשמש, לבשו בגדים רפויים מכותנה או בדים נושמים אחרים, ושתו לפחות כוס מים בשעה.';
+        sensitiveToColdRecommendation = 'אם אתם רגישים לקור - אפשר ללבוש חולצה דקה ארוכה למרות החום.';
+    }
+
+    // בניית ההמלצה המלאה בהתאם להעדפות המשתמש
+    let fullRecommendation = baseRecommendation;
+    if (feelsCold) {
+        fullRecommendation += '\n' + sensitiveToColdRecommendation;
+    }
+    if (feelsHot) {
+        fullRecommendation += '\n' + sensitiveToHotRecommendation;
+    }
+
+    // הוספת המלצות כלליות לפי הטמפרטורה
+    if (temp >= 28) {
+        fullRecommendation += '\nחשוב: להצטייד בהרבה מים, להימנע מפעילות מאומצת בשעות החמות, ולהישאר בצל כשאפשר.';
+    } else if (temp <= 12) {
+        fullRecommendation += '\nטיפ: כדאי ללבוש כמה שכבות דקות במקום שכבה עבה אחת - כך קל יותר להתאים את הלבוש לתנאי מזג האוויר המשתנים.';
+    }
+
+    return fullRecommendation;
 }
 
 form.addEventListener('submit', (e) => {
@@ -130,25 +203,25 @@ form.addEventListener('submit', (e) => {
 
 async function getWeatherByCity(city) {
     console.log("מזג האוויר עבור:", city);
-	try {
-		const response = await fetch(
-			`https://api.openweathermap.org/data/2.5/weather?q=${city}&lang=he&units=metric&appid=${API_KEY}`
-		);
-		const data = await response.json();
+    try {
+        const response = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?q=${city}&lang=he&units=metric&appid=${API_KEY}`
+        );
+        const data = await response.json();
 
-		// בדוק אם יש שגיאה בתשובה
-		if (data.cod !== 200) {
-			throw new Error(data.message);
-		}
+        // בדוק אם יש שגיאה בתשובה
+        if (data.cod !== 200) {
+            throw new Error(data.message);
+        }
 
-		// הצג נתוני מזג האוויר
-		console.log("נתוני מזג האוויר:", data);
-		displayWeather(data, city);
-	} catch (error) {
-		console.error("שגיאה בזיהוי המזג האוויר:", error.message);
-		errorContainer.textContent = "שגיאה בקבלת נתוני מזג האוויר.";
-		errorContainer.classList.remove("hidden");
-	}
+        // הצג נתוני מזג האוויר
+        console.log("נתוני מזג האוויר:", data);
+        displayWeather(data, city);
+    } catch (error) {
+        console.error("שגיאה בזיהוי המזג האוויר:", error.message);
+        errorContainer.textContent = "שגיאה בקבלת נתוני מזג האוויר.";
+        errorContainer.classList.remove("hidden");
+    }
 }
 
 async function getCityName(lat, lon) {
@@ -160,7 +233,12 @@ async function getCityName(lat, lon) {
         const data = await response.json();
         if (data && data.length > 0) {
             // החזרת שם העיר בעברית אם קיים
-            return data[0].local_names?.he || data[0].name;
+            let hebrewCityName = data[0].local_names?.he || data[0].name;
+
+            hebrewCityName = hebrewCityName.replace(/תל[־ ]אביב[־– ]?יפו/, 'תל אביב');
+            console.log("שם העיר בעברית:", hebrewCityName);
+
+            return hebrewCityName
         } else {
             throw new Error("עיר לא נמצאה.");
         }
