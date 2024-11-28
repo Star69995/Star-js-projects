@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול תורים</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="title">ניהול תורים</h1>
+
+        <div class="form-container">
+            <div class="form-header">
+                <h2 id="formTitle">הוספת תור חדש</h2>
+                <div id="selectedDate" class="text-gray"></div>
+            </div>
+
+            <form id="appointmentForm">
+                <div class="form-group">
+                    <label>תאריך</label>
+                    <input type="date" id="date" required>
+                </div>
+
+                <div id="roomAvailability"></div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>חדר</label>
+                        <select id="room" required>
+                            <option value="">בחר חדר</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>מטפל</label>
+                        <input type="text" id="therapist" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>שעה</label>
+                        <select id="time" required>
+                            <option value="">בחר שעה</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>משך</label>
+                        <select id="duration">
+                            <option value="30">30 דקות</option>
+                            <option value="45">45 דקות</option>
+                            <option value="60">60 דקות</option>
+                            <option value="90">90 דקות</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>תדירות</label>
+                        <select id="recurrenceType">
+                            <option value="ONCE">חד פעמי</option>
+                            <option value="DAILY">מדי יום</option>
+                            <option value="WEEKLY">מדי שבוע</option>
+                            <option value="BIWEEKLY">מדי שבועיים</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary" id="submitBtn">הוסף תור</button>
+                    <button type="button" class="btn-secondary" id="cancelBtn" style="display: none;">ביטול</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

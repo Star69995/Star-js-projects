@@ -96,44 +96,69 @@ async function displayDailyForecast(data) {
 
 // Adjusted function to generate HTML for daily forecast
 function generateDailyForecastHTML(dailyData) {
-    // קיבוץ נתונים לפי תאריך
-    const groupedByDate = {};
+    const groupedByDate = dailyData.reduce((acc, entry) => {
+        const date = new Date(entry.dt * 1000);
+        const dateStr = date.toLocaleDateString('he-IL', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long'
+        });
 
-    dailyData.forEach(entry => {
-        const date = new Date(entry.dt * 1000).toLocaleDateString('he-IL');
-        if (!groupedByDate[date]) {
-            groupedByDate[date] = [];
+        if (!acc[dateStr]) {
+            acc[dateStr] = [];
         }
-        groupedByDate[date].push(entry);
-    });
+        acc[dateStr].push(entry);
+        return acc;
+    }, {});
 
-    // יצירת HTML לכל יום
-    return Object.entries(groupedByDate).map(([date, entries]) => {
-        const entriesHTML = entries.map((entry, index) => {
-            const time = new Date(entry.dt * 1000).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+    return Object.entries(groupedByDate)
+        .map(([date, entries], index) => {
+            const tempMin = Math.round(Math.min(...entries.map(e => e.main?.temp_min || Infinity)));
+            const tempMax = Math.round(Math.max(...entries.map(e => e.main?.temp_max || -Infinity)));
+            const avgPop = Math.round((entries.reduce((acc, e) => acc + (e.pop || 0), 0) / entries.length) * 100);
+            const commonIcon = entries[0]?.weather?.[0]?.icon?.replace('n', 'd') || "01d";
+            const description = entries[0]?.weather?.[0]?.description || "";
+
             return `
-                <div class="time-entry">
-                    <h4 class="time">${time}</h4>
-                    <div class="weather-details">
-                        <p>טמפרטורה: ${entry.main?.temp_min ? Math.round(entry.main.temp_min) : 'לא זמין'}°C</p>
-                        <p>תיאור: ${entry.weather?.[0]?.description || 'לא זמין'}</p>
-                        <p>מהירות רוח: ${entry.wind?.speed ? entry.wind.speed.toFixed(1) : 'לא זמין'} מ/ש</p>
-                        ${entry.pop ? `<p>סיכוי לגשם: ${(entry.pop * 100).toFixed(0)}%</p>` : ''}
+                <div class="${index === 0 ? 'today' : ''}" dir="rtl">
+                    <div class="forecast-date">
+                        <h3>${date}</h3>
+                        ${index === 0 ? '<span class="today-badge">היום</span>' : ''}
+                    </div>
+                    
+                    <div class="forecast-content">
+                        <div class="forecast-icon">
+                            <img src="http://openweathermap.org/img/wn/${commonIcon}@2x.png" 
+                                 alt="${description}">
+                            <span class="weather-description">${description}</span>
+                        </div>
+                        
+                        <div class="forecast-details">
+                            <div class="temp-range">
+                                <div class="temp temp-min">
+                                    <span class="label">מינימום</span>
+                                    <span class="value">${tempMin}°</span>
+                                </div>
+                                <div class="temp-separator"></div>
+                                <div class="temp temp-max">
+                                    <span class="label">מקסימום</span>
+                                    <span class="value">${tempMax}°</span>
+                                </div>
+                            </div>
+                            
+                            <div class="precipitation">
+                                <span class="rain-icon">💧</span>
+                                <span class="rain-chance">${avgPop}% סיכוי למשקעים</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
-        }).join('');
-
-        return `
-            <div class="day-container" dir="rtl">
-                <h3 class="date-header">${date}</h3>
-                <div class="entries-container">
-                    ${entriesHTML}
-                </div>
-            </div>
-        `;
-    }).join('');
+        })
+        .join('');
 }
+
+
 
 
 

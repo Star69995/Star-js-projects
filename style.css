@@ -15,86 +15,6 @@
     scroll-behavior: smooth;
 }
 
-nav {
-    background-color: var(--primary-color);
-    opacity: 1;
-    position: sticky;
-    top: 0;
-    width: 100%;
-    height: var(--nav-height);
-    box-shadow: rgba(0, 0, 0, 0.5) 0px 5px 10px;
-    z-index: 10;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.horizontalNav {
-    list-style-type: none;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin: 0;
-    padding: 0;
-}
-
-.horizontalNav.left {
-    justify-content: flex-start;
-
-}
-
-.horizontalNav.right {
-    justify-content: flex-end;
-}
-
-li {
-    height: var(--nav-height);
-}
-
-li a {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-    height: var(--nav-height);
-
-}
-
-li a:hover {
-    background-color: #3d1c59;
-}
-
-nav img {
-    height: 40px;
-}
-
-nav .right li a {
-    padding: 0px;
-    padding-left: 10px;
-    padding-right: 15px;
-}
-
-
-.menu-icon {
-    display: none;
-    cursor: pointer;
-    font-size: 24px;
-    color: white;
-    padding: 14px 16px;
-}
-
-.menu-toggle {
-    display: none;
-}
-
-
-
-
-
 
 html,
 body {
@@ -126,27 +46,6 @@ p {
     margin: 20px;
 }
 
-
-.projects {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 40px;
-    flex-wrap: wrap;
-}
-
-
-.strip {
-    text-align: center;
-    background-color: rgb(237, 216, 255);
-    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 10px;
-    padding: 40px;
-    align-self: center;
-    margin: 10px;
-    width: 100%;
-    margin: 0;
-}
 
 #about img {
     border-radius: 50%;
@@ -216,110 +115,6 @@ h1{
     font-size: 3em;
 }
 
-span {
-    font-weight: bold;
-}
-
-footer {
-    padding: 0px;
-    font-size: 0.7em;
-    margin: 0px;
-
-}
-
-.darker {
-    background-color: rgb(212, 193, 228);
-}
-
-
-
-
-
-
-.imgContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0px;
-    padding-bottom: 40px;
-    border-radius: 50px;
-    text-align: center;
-    background-color: rgb(237, 216, 255);
-    box-shadow: rgba(0, 0, 0, 0.3) 10px 10px 10px;
-    align-self: center;
-
-
-    border-top-left-radius: 45px;
-    border-top-right-radius: 45px;
-    max-width: 400px;
-    overflow: hidden;
-    transition: all 0.3s ease-in-out;
-}
-
-.imgContainer:hover {
-    transform: scale(1.05);
-    box-shadow: rgba(0, 0, 0, 0.5) 10px 10px 10px;
-}
-
-
-.imgContainer img {
-    max-height: 220px;
-}
-
-
-i {
-    background-color: #b6b1ff;
-    border-radius: 50%;
-    padding: 20px;
-    width: 70px;
-    height: 70px;
-    font-size: 30px;
-    margin-left: 10px;
-    margin-right: 10px;
-    transition: all 0.3s ease-in-out;
-}
-
-/* CSS for the text span */
-.icon-text {
-    position: absolute;
-    font-size: 14px;
-    color: #333;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    padding: 5px 8px;
-    border-radius: 4px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
-    white-space: nowrap;
-    transform: translate(-30%, 50px);
-    /* Center horizontally and slightly below */
-    animation: fadeIn 0.3s ease-in-out;
-    z-index: 10;
-}
-
-i:hover {
-    color: #008cff;
-    cursor: help;
-}
-
-.icons {
-    direction: ltr;
-    padding: 10px;
-    margin: -10px;
-    background-color: white;
-}
-
-
-.project-icons i {
-    width: auto;
-    height: auto;
-    font-size: 20px;
-    background-color: var(--strip-color);
-    margin: 0;
-
-}
-
-
 
 a {
     text-decoration: none;
@@ -327,72 +122,9 @@ a {
 }
 
 
-
-.form-container {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding-top: 0px;
-}
-
-.form-container img {
-    width: 100%;
-    max-width: 400px;
-    object-fit: contain;
-    margin: 0 auto;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    width: 100%;
-    max-width: 400px;
-    text-align: right;
-    margin: 0 auto;
-}
-
-.form-control {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-
-}
-
-form label {
-    font-weight: bold;
-    color: #3d1c59;
-}
-
-form input,
-form textarea {
-    text-align: right;
-    padding: 10px;
-    border-radius: 5px;
-    width: 100%;
-    resize: none;
-
-
-    height: 50px;
-    background: #fcfcfc 0% 0% no-repeat padding-box;
-    border: 0;
-    border-bottom: 4px solid #020253;
-}
-
-form textarea {
-    height: 100px;
-}
-
-form button {
-    width: fit-content;
-
-}
-
-
-
-
 #projects-container {
     display: flex;
-    flex-direction: row-reverse;
+    flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
@@ -411,11 +143,6 @@ form button {
 
 
 
-
-
-
-
-
 @media (min-width: 1800px) {
     .projects {
         margin-left: calc((100vw - (400px * 4)) / 2);
@@ -423,7 +150,6 @@ form button {
     }
 
 }
-
 
 
 @media (max-width: 1200px) {
@@ -437,22 +163,6 @@ form button {
     }
 }
 
-@media (max-width: 800px) {
-    .form-container {
-        grid-template-columns: 1fr;
-    }
-
-    .form-container img {
-        grid-row-start: 1;
-    }
-
-
-    form {
-        width: 100%;
-
-    }
-}
-
 /* For small screens like mobile devices */
 @media (max-width: 600px) {
     :root {
@@ -462,46 +172,5 @@ form button {
 
     * {
         scroll-margin-top: 200px;
-    }
-
-    .imgContainer {
-        max-width: 300px;
-    }
-
-    .imgContainer img {
-        max-width: 300px;
-    }
-
-    .horizontalNav {
-        display: none;
-        /* Hide nav by default on mobile */
-        flex-direction: column;
-        width: 100%;
-
-    }
-
-    .menu-icon {
-        display: block;
-        /* Show the toggle icon on mobile */
-
-    }
-
-    li a {
-        border-radius: 20px;
-    }
-
-    /* When the checkbox is checked, show the menu */
-    .menu-toggle:checked+.menu-icon+.horizontalNav {
-        display: flex;
-    }
-
-    .horizontalNav.right {
-        flex-direction: row;
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    nav .right li :hover {
-        background-color: var(--primary-color);
     }
 }

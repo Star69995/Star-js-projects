@@ -1,0 +1,155 @@
+:root {
+    --room-1-color: #f8d7da;
+    --room-2-color: #d1e7dd;
+    --room-3-color: #cfe2ff;
+    --room-4-color: #e2e3e5;
+    --room-5-color: #fff3cd;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.form-container {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.text-gray {
+    color: #666;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.button-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    flex: 1;
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background-color: #2563eb;
+}
+
+.btn-secondary {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+    background-color: white;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background-color: #f9fafb;
+}
+
+.availability-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.availability-table th,
+.availability-table td {
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+.availability-table th {
+    font-weight: bold;
+}
+
+.slot-available {
+    background-color: #d1e7dd;
+}
+
+.slot-occupied {
+    background-color: #f8d7da;
+}
+
+.appointment-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.btn-icon {
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-edit {
+    background-color: #ebf5ff;
+}
+
+.btn-edit:hover {
+    background-color: #dbeafe;
+}
+
+.btn-delete {
+    background-color: #fee2e2;
+}
+
+.btn-delete:hover {
+    background-color: #fecaca;
+}
+

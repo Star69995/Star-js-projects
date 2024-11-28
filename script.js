@@ -1,10 +1,11 @@
 const projects = [
     { name: "האתר של סטאר", url: "https://star69995.github.io/star-site/" },
-    { name: "קריפטוגרמה", url: "cryptogram/index.html" },
-    { name: "שעון עצר", url: "timer/index.html" },
-    { name: "מנהל משימות", url: "task_manager/index.html"},
-    { name: "משחק מתמטי", url: "math/index.html"},
-    {name: "מזג אוויר", url: "weather/index.html"},
+    { name: "קריפטוגרמה", url: "cryptogram/" },
+    { name: "שעון עצר", url: "timer/" },
+    { name: "מנהל משימות", url: "task_manager/"},
+    { name: "משחק מתמטי", url: "mathGame/"},
+    {name: "מזג אוויר", url: "weather/"},
+    {name: "בונה דפים", url: "pageBuilder/"},
 ];
 
 const container = document.getElementById('projects-container');

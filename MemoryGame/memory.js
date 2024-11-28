@@ -45,14 +45,51 @@ cards.forEach((card) => {
         console.log(card);
         console.log(card.style.backgroundColor);
 
-        flippedCards +=1
+        flippedCards += 1
         if (flippedCards === 2) {
-            
-            setTimeout(() => cards.forEach(backFlip), 1000);
             flippedCards = 0
+            checkIfTwoFlipped();
+            // setTimeout(() => cards.forEach(backFlip), 1000);
+
         }
+
     });
 });
 
 
 assignColorsToPairs()
+
+function checkIfTwoFlipped() {
+
+
+    let prevColor = "";
+    let currentColor = "";
+
+    let wasCorrect = false;
+
+    cards.forEach((card) => {
+        currentColor = card.style.backgroundColor;
+
+        // console.log('prev', prevColor) 
+        // console.log('current', currentColor);
+
+        if (currentColor == prevColor && currentColor != "grey" && currentColor != "") {
+            wasCorrect = true;
+            console.log('CORRECT');
+            alert('GOOD JOB')
+        }
+        else if (currentColor !== "grey" && prevColor != "grey" && prevColor == "") {
+            prevColor = currentColor;
+        }
+
+
+    })
+
+    if (!wasCorrect) {
+        setTimeout(() => {
+            cards.forEach(backFlip);
+        }, 1000)
+    }
+
+
+}
