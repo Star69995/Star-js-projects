@@ -71,18 +71,38 @@ async function display3HourForecast(data) {
 
 // Adjusted function to generate HTML for 3-hourly forecast
 function generateHourlyForecastHTML(hourlyData) {
-    return hourlyData.map(entry => `
-        <div class="weather-details">
-            <p>${new Date(entry.dt * 1000).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</p>
-            <p>${entry.main && entry.main.temp ? Math.round(entry.main.temp) : 'לא זמין'}°C</p>
-            <p class="two-lines">${entry.weather && entry.weather[0] ? entry.weather[0].description : 'לא זמין'}</p>
-<p>רוח: ${entry.wind && entry.wind.speed ? entry.wind.speed.toFixed(1) : 'לא זמין'} מ/ש</p>
+    const days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+    const today = new Date();
+    const todayDayIndex = today.getDay();
 
-            <p>סיכוי גשם: ${entry.pop ? (entry.pop * 100).toFixed(0)+'%': 'לא זמין'}</p>
-            <p>ראות: ${entry.visibility ? entry.visibility / 1000 : 'לא זמין'} ק"מ</p>
-        </div>
-    `).join('');
+    // Helper to determine the day label (Today, Tomorrow, etc.)
+    const getDayLabel = (entryDate) => {
+        const entryDayIndex = entryDate.getDay();
+        if (entryDayIndex === todayDayIndex) return 'היום';
+        if (entryDayIndex === (todayDayIndex + 1) % 7) return 'מחר';
+        if (entryDayIndex === (todayDayIndex + 2) % 7) return 'מחרתיים';
+        return `יום ${days[entryDayIndex]}`;
+    };
+
+    return hourlyData.map(entry => {
+        const entryDate = new Date(entry.dt * 1000);
+        const dayLabel = getDayLabel(entryDate); // Determine day label
+
+        return `
+			<div class="weather-column">
+				<p class="day-label">${dayLabel}</p>
+				<p>${entryDate.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</p>
+				<p>${entry.main && entry.main.temp ? Math.round(entry.main.temp) : 'לא זמין'}°C</p>
+				<p class="two-lines">${entry.weather && entry.weather[0] ? entry.weather[0].description : 'לא זמין'}</p>
+				<p>רוח: ${entry.wind && entry.wind.speed ? entry.wind.speed.toFixed(1) : 'לא זמין'} מ/ש</p>
+				<p>סיכוי גשם: ${entry.pop ? (entry.pop * 100).toFixed(0) + '%' : 'לא זמין'}</p>
+				<p>ראות: ${entry.visibility ? entry.visibility / 1000 : 'לא זמין'} ק"מ</p>
+			</div>
+		`;
+    }).join('');
 }
+
+
 // Adjusted function to display daily forecast
 async function displayDailyForecast(data) {
     if (!data || !data.list) {

@@ -252,7 +252,7 @@ body {
     font-weight: 600;
     color: #2d3748;
     font-size: 1.1rem;
-    margin-bottom: 0.75rem;
+    /* margin-bottom: 0.75rem; */
 }
 
 /* Temperature */
@@ -286,7 +286,7 @@ body {
 
 /* Day Card */
 #daily-forecast>div {
-    background: #dddaeb;
+    background: #d0edff;
     border-radius: 0.5rem;
     padding: 1.25rem;
     margin-bottom: 1rem;
@@ -382,8 +382,8 @@ body {
 
 /* Today's Forecast Highlight */
 #daily-forecast>div:first-child {
-    background: #ebf8ff;
-    border-right: 4px solid #90cdf4;
+    background: #b4ddf3;
+    border-right: 4px solid #539fce;
 }
 
 /* Responsive Design */
@@ -617,6 +617,7 @@ body {
 .rain-icon {
     color: #3182ce;
 }
+
 
 /* Large Screens (1200px and up) */
 @media screen and (min-width: 1200px) {
