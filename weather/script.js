@@ -140,29 +140,30 @@ function generateDailyForecastHTML(dailyData) {
             const description = entries[0]?.weather?.[0]?.description || "";
 
             return `
-                <div class="${index === 0 ? 'today' : ''}" dir="rtl">
+                <div class="${index === 0 ? 'today' : ''}" >
                     <div class="forecast-date">
                         <h3>${date}</h3>
                         ${index === 0 ? '<span class="today-badge">היום</span>' : ''}
                     </div>
                     
                     <div class="forecast-content">
-                        <div class="forecast-icon">
-                            <img src="http://openweathermap.org/img/wn/${commonIcon}@2x.png" 
-                                 alt="${description}">
-                            <span class="weather-description">${description}</span>
-                        </div>
+<figure class="forecast-icon">
+	<img src="http://openweathermap.org/img/wn/${commonIcon}@2x.png" 
+	     alt="${description}">
+	<figcaption>${description}</figcaption>
+</figure>
                         
                         <div class="forecast-details">
                             <div class="temp-range">
-                                <div class="temp temp-min">
-                                    <span class="label">מינימום</span>
-                                    <span class="value">${tempMin}°</span>
-                                </div>
+
                                 <div class="temp-separator"></div>
                                 <div class="temp temp-max">
                                     <span class="label">מקסימום</span>
                                     <span class="value">${tempMax}°</span>
+                                </div>
+                                                                <div class="temp temp-min">
+                                    <span class="label">מינימום</span>
+                                    <span class="value">${tempMin}°</span>
                                 </div>
                             </div>
                             
