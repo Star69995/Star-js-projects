@@ -32,6 +32,17 @@ body {
 
 }
 
+.strip {
+    text-align: center;
+    background-color: rgb(237, 216, 255);
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 10px;
+    padding: 40px;
+    align-self: center;
+    margin: 10px;
+    width: 100%;
+    margin: 0;
+}
+
 section {
     display: flex;
     justify-content: center;
