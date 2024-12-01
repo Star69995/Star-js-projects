@@ -612,7 +612,7 @@ function showInstructions() {
     const modal = document.getElementById('instructionsModal');
     modal.style.display = 'flex';
     // hideKeyboard();
-}
+} 
 
 // כשהדף נטען, נוסיף את ההתנהגות לכפתור הסגירה ולחיצה מחוץ למודל
 document.addEventListener('DOMContentLoaded', () => {
@@ -625,12 +625,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // כשלוחצים מחוץ למודל, סוגרים אותו
-    window.onclick = function (event) {
-        if (event.target == modal) {
+    const closeModal = function (event) {
+        if (event.target === modal) {
             modal.style.display = 'none';
         }
-    }
+    };
+
+    window.addEventListener('click', closeModal);
+    window.addEventListener('touchstart', closeModal);
 });
+
 
 
 function updateKeyboardHighlights() {
