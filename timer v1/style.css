@@ -18,7 +18,7 @@ body {
 
 
 
-.container {
+div {
     border: 3px solid black;
     border-radius: 50px;
     text-align: center;
@@ -31,7 +31,7 @@ body {
     margin: 10px;
 }
 
-.container:hover {
+div:hover {
     background-color: rgb(224, 196, 248);
 }
 
@@ -77,23 +77,8 @@ h1 {
     color: rgb(35, 6, 139);
     padding-left: 100px;
     padding-right: 100px;
-    /* font-size: 5vw; */
-    /* font-size: clamp(1.5rem, 5vw, 3rem); */
-}
-
-h1 {
     font-size: 5vw;
 }
-
-@media (max-width: 768px) {
-    h1 {
-        font-size: 2rem;
-        /* גודל מתאים לטלפונים ניידים */
-        padding-left: 50px;
-        padding-right: 50px;
-    }
-}
-
 
 span {
     font-weight: bold;
@@ -101,23 +86,44 @@ span {
     font-size: 15vw;
 }
 
+.footer {
+    padding: 10px;
+    margin: 0 auto;
+    width:fit-content;
+    /* Remove margin to prevent extra space */
+    text-align: center;
+        /* Center the text inside the footer */
+}
+
+
+
 
 
 
 section {
     display: flex;
-    justify-content: space-evenly;
+    justify-content: center;
     align-items: center;
     flex-direction: column;
 
+    /* Set width to 80% of the viewport width */
     height: 80vh;
+    /* Set height to 80% of the viewport height */
     margin: 0 auto;
-    height: 100vh;
+    height: auto;
+    /* Allow height to expand based on content */
 
 }
 
 
-.colon {
+.colon
+{
     display: inline-block;
     font-weight: bold;
+}
+
+
+#videoUrl {
+    width: 60%;
+    text-align: left;
 }
