@@ -64,7 +64,7 @@ body {
     padding: var(--padding);
     margin: 20px;
     border-radius: var(--radius);
-    height: content-fit;
+    height: fit-content;
     position: relative;
     animation: slideIn 0.5s ease forwards;
 }
