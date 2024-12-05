@@ -25,6 +25,18 @@
     z-index: 1;
 }
 
+.element-editing-panel {
+    direction : ltr;
+}
+
+.editing-panel>label {
+    color: white;
+}
+
+.editing-panel input {
+    width: 100%;
+}
+
 .buttons {
     display: flex;
     gap: 10px;
@@ -61,13 +73,23 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    /* width: 100%; */
+    width: 100%;
     background-color: #e0e0e0;
     /* Changed to align with right-side panel */
     overflow-y: auto;
-    flex-grow: 1;
+    /* flex-grow: 1; */
     padding: 20px;
     margin-right: var(--editingPanelWidth);
+    /* height: 90vh; */
+    height: 100vh;
+    /* או גובה ספציפי אחר */
+    min-height: 0;
+    /* חשוב! מאפשר לתוכן לגלול */
+}
+
+.main>* {
+    flex-shrink: 0;
+    /* מונע מהאלמנטים להתכווץ */
 }
 
 p {
@@ -82,15 +104,7 @@ body {
     overflow: hidden;
 }
 
-/* .divUser {
-    width: 100%;
-    background-color: #ebb0eb;
-    height: 100px;
-    border: black 2px solid;
-} */
 
-
-
-.selected{
-    border: 5px solid blue !important;
+.selected {
+    box-shadow: 0 0 5px 5px rgba(25, 118, 210, 0.7);
 }

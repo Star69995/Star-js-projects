@@ -37,159 +37,147 @@ class Panel {
     }
 
     showElementEditingPanel(element) {
-        let elementEditingPanelStart = `<div class="editing-panel">
-    <div class='buttons elementEditing'> `;
-        let elementEditingPanelEnd = `</div></div>`;
-        let panelForm = '';
+        // יצירת פאנל עריכה דינמי
+        if (element && element.propStyles) {
+            let panelForm = `<div class="editing-panel element-editing-panel">`;
 
-        switch (element.firstChild.tagName.toLowerCase()) {
-            case 'p': // Text Element
-                panelForm = `
-            <label for="textContent">הכנס טקסט:</label>
-            <input type="text" id="textContent" placeholder="הכנס טקסט" value="${element.innerText}" aria-label="הכנס טקסט"><br>
-            <label for="fontSize">גודל פונט:</label>
-            <input type="number" id="fontSize" min="1" max="100" value="${parseInt(window.getComputedStyle(element).fontSize)}" aria-label="גודל פונט"><br>
-            <label for="fontFamily">פונט:</label>
-            <select id="fontFamily" aria-label="בחר פונט">
-                <option value="Arial" ${element.style.fontFamily === 'Arial' ? 'selected' : ''}>Arial</option>
-                <option value="Verdana" ${element.style.fontFamily === 'Verdana' ? 'selected' : ''}>Verdana</option>
-                <option value="Times New Roman" ${element.style.fontFamily === 'Times New Roman' ? 'selected' : ''}>Times New Roman</option>
-            </select><br>
-            <label for="underlineColor">צבע קו תחתון:</label>
-            <input type="color" id="underlineColor" value="${element.style.textDecorationColor || '#000000'}" aria-label="בחר צבע קו תחתון"><br>
-            <label for="boldToggle">בולד:</label>
-            <input type="checkbox" id="boldToggle" ${element.style.fontWeight === 'bold' ? 'checked' : ''} aria-label="הפעל בולד"><br>
-            `;
-                break;
-
-            case 'img': // Image Element
-                panelForm = `
-            <label for="imageUrl">קישור לתמונה:</label>
-            <input type="text" id="imageUrl" placeholder="הכנס קישור לתמונה" value="${element.src}" aria-label="הכנס קישור לתמונה"><br>
-            <label for="imageWidth">רוחב (בפיקסלים):</label>
-            <input type="number" id="imageWidth" min="1" value="${element.width}" aria-label="הכנס רוחב התמונה"><br>
-            <label for="imageHeight">גובה (בפיקסלים):</label>
-            <input type="number" id="imageHeight" min="1" value="${element.height}" aria-label="הכנס גובה התמונה"><br>
-            <label for="imageBorderRadius">רדיוס פינות התמונה:</label>
-            <input type="number" id="imageBorderRadius" min="0" max="50" value="${parseInt(window.getComputedStyle(element).borderRadius)}" aria-label="הכנס רדיוס פינות"><br>
-            `;
-                break;
-
-            case 'div': // Div Element
-                panelForm = `
-            <label for="divBackgroundColor">צבע רקע:</label>
-            <input type="color" id="divBackgroundColor" value="${element.style.backgroundColor || '#FFFFFF'}" aria-label="בחר צבע רקע"><br>
-            <label for="divBorder">הגדרת גבול:</label>
-            <input type="text" id="divBorder" placeholder="למשל, 2px solid black" value="${element.style.border}" aria-label="הכנס הגדרת גבול"><br>
-            <label for="divBorderRadius">רדיוס גבול:</label>
-            <input type="number" id="divBorderRadius" min="0" max="50" value="${parseInt(window.getComputedStyle(element).borderRadius)}" aria-label="הכנס רדיוס גבול"><br>
-            `;
-                break;
-        }
-
-        this.showPanel(elementEditingPanelStart + panelForm + elementEditingPanelEnd);
-        this.addEventListeners(element);
-    }
-
-    addEventListeners(element) {
-        // בדוק אם האלמנט קיים לפני הוספת מאזינים
-        const textContentField = document.getElementById('textContent');
-        const fontSizeField = document.getElementById('fontSize');
-        const fontFamilyField = document.getElementById('fontFamily');
-        const underlineColorField = document.getElementById('underlineColor');
-        const boldToggleField = document.getElementById('boldToggle');
-        const imageUrlField = document.getElementById('imageUrl');
-        const imageWidthField = document.getElementById('imageWidth');
-        const imageHeightField = document.getElementById('imageHeight');
-        const imageBorderRadiusField = document.getElementById('imageBorderRadius');
-        const divBackgroundColorField = document.getElementById('divBackgroundColor');
-        const divBorderField = document.getElementById('divBorder');
-        const divBorderRadiusField = document.getElementById('divBorderRadius');
-
-        // הוספת מאזינים עבור טקסט
-        if (textContentField) {
-            textContentField.addEventListener('input', (event) => {
-                element.innerText = event.target.value;
+            // יצירת שדות קלט דינמיים עבור כל תכונה ב-propStyles
+            Object.entries(element.propStyles).forEach(([key, value]) => {
+                panelForm += `
+            <label for="${key}">${key}:</label>
+            <input type="${typeof value === 'number' ? 'number' : key.includes('color') ? 'color' : 'text'}" 
+                id="${key}" value="${value}">
+            <br>`;
             });
-        }
 
-        // הוספת מאזינים עבור גודל פונט
-        if (fontSizeField) {
-            fontSizeField.addEventListener('input', (event) => {
-                element.style.fontSize = event.target.value + 'px';
-            });
-        }
+            panelForm += `</div>`;
+            this.showPanel(panelForm);
 
-        // הוספת מאזינים עבור פונט
-        if (fontFamilyField) {
-            fontFamilyField.addEventListener('change', (event) => {
-                element.style.fontFamily = event.target.value;
-            });
-        }
+            // מאזינים לשדות הקלט
+            Object.keys(element.propStyles).forEach((key) => {
+                const inputField = document.getElementById(key);
+                if (inputField) {
+                    inputField.addEventListener('input', (event) => {
+                        const newValue = event.target.value;
 
-        // הוספת מאזינים עבור צבע קו תחתון
-        if (underlineColorField) {
-            underlineColorField.addEventListener('input', (event) => {
-                element.style.textDecoration = `underline ${event.target.value}`;
-            });
-        }
+                        // עדכון ב-propStyles
+                        element.propStyles[key] = newValue;
 
-        // הוספת מאזינים עבור בולד
-        if (boldToggleField) {
-            boldToggleField.addEventListener('change', (event) => {
-                element.style.fontWeight = event.target.checked ? 'bold' : 'normal';
-            });
-        }
+                        // עדכון בסגנון הויזואלי (style) של האלמנט
+                        element.element.style[key] = newValue;  // עדכון ישיר ב-style של האלמנט
+                        element.applyStyles();
+                    });
 
-        // הוספת מאזינים עבור קישור תמונה
-        if (imageUrlField) {
-            imageUrlField.addEventListener('input', (event) => {
-                element.src = event.target.value;
-            });
-        }
-
-        // הוספת מאזינים עבור רוחב תמונה
-        if (imageWidthField) {
-            imageWidthField.addEventListener('input', (event) => {
-                element.width = event.target.value;
-            });
-        }
-
-        // הוספת מאזינים עבור גובה תמונה
-        if (imageHeightField) {
-            imageHeightField.addEventListener('input', (event) => {
-                element.height = event.target.value;
-            });
-        }
-
-        // הוספת מאזינים עבור רדיוס פינות תמונה
-        if (imageBorderRadiusField) {
-            imageBorderRadiusField.addEventListener('input', (event) => {
-                element.style.borderRadius = event.target.value + 'px';
-            });
-        }
-
-        // הוספת מאזינים עבור צבע רקע של דיב
-        if (divBackgroundColorField) {
-            divBackgroundColorField.addEventListener('input', (event) => {
-                element.style.backgroundColor = event.target.value;
-            });
-        }
-
-        // הוספת מאזינים עבור גבול של דיב
-        if (divBorderField) {
-            divBorderField.addEventListener('input', (event) => {
-                element.style.border = event.target.value;
-            });
-        }
-
-        // הוספת מאזינים עבור רדיוס גבול של דיב
-        if (divBorderRadiusField) {
-            divBorderRadiusField.addEventListener('input', (event) => {
-                element.style.borderRadius = event.target.value + 'px';
+                }
             });
         }
     }
+
+
+    showPanel(panelHTML) {
+        this.panel.innerHTML = panelHTML;
+    }
+
+
+    // addEventListeners(element) {
+    //     // בדוק אם האלמנט קיים לפני הוספת מאזינים
+    //     const textContentField = document.getElementById('textContent');
+    //     const fontSizeField = document.getElementById('fontSize');
+    //     const fontFamilyField = document.getElementById('fontFamily');
+    //     const underlineColorField = document.getElementById('underlineColor');
+    //     const boldToggleField = document.getElementById('boldToggle');
+    //     const imageUrlField = document.getElementById('imageUrl');
+    //     const imageWidthField = document.getElementById('imageWidth');
+    //     const imageHeightField = document.getElementById('imageHeight');
+    //     const imageBorderRadiusField = document.getElementById('imageBorderRadius');
+    //     const divBackgroundColorField = document.getElementById('divBackgroundColor');
+    //     const divBorderField = document.getElementById('divBorder');
+    //     const divBorderRadiusField = document.getElementById('divBorderRadius');
+
+    //     // הוספת מאזינים עבור טקסט
+    //     if (textContentField) {
+    //         textContentField.addEventListener('input', (event) => {
+    //             element.innerText = event.target.value;
+    //         });
+    //     }
+
+    //     // הוספת מאזינים עבור גודל פונט
+    //     if (fontSizeField) {
+    //         fontSizeField.addEventListener('input', (event) => {
+    //             element.style.fontSize = event.target.value + 'px';
+    //         });
+    //     }
+
+    //     // הוספת מאזינים עבור פונט
+    //     if (fontFamilyField) {
+    //         fontFamilyField.addEventListener('change', (event) => {
+    //             element.style.fontFamily = event.target.value;
+    //         });
+    //     }
+
+    //     // הוספת מאזינים עבור צבע קו תחתון
+    //     if (underlineColorField) {
+    //         underlineColorField.addEventListener('input', (event) => {
+    //             element.style.textDecoration = `underline ${event.target.value}`;
+    //         });
+    //     }
+
+    //     // הוספת מאזינים עבור בולד
+    //     if (boldToggleField) {
+    //         boldToggleField.addEventListener('change', (event) => {
+    //             element.style.fontWeight = event.target.checked ? 'bold' : 'normal';
+    //         });
+    //     }
+
+    //     // הוספת מאזינים עבור קישור תמונה
+    //     if (imageUrlField) {
+    //         imageUrlField.addEventListener('input', (event) => {
+    //             element.src = event.target.value;
+    //         });
+    //     }
+
+    //     // הוספת מאזינים עבור רוחב תמונה
+    //     if (imageWidthField) {
+    //         imageWidthField.addEventListener('input', (event) => {
+    //             element.width = event.target.value;
+    //         });
+    //     }
+
+    //     // הוספת מאזינים עבור גובה תמונה
+    //     if (imageHeightField) {
+    //         imageHeightField.addEventListener('input', (event) => {
+    //             element.height = event.target.value;
+    //         });
+    //     }
+
+    //     // הוספת מאזינים עבור רדיוס פינות תמונה
+    //     if (imageBorderRadiusField) {
+    //         imageBorderRadiusField.addEventListener('input', (event) => {
+    //             element.style.borderRadius = event.target.value + 'px';
+    //         });
+    //     }
+
+    //     // הוספת מאזינים עבור צבע רקע של דיב
+    //     if (divBackgroundColorField) {
+    //         divBackgroundColorField.addEventListener('input', (event) => {
+    //             element.style.backgroundColor = event.target.value;
+    //         });
+    //     }
+
+    //     // הוספת מאזינים עבור גבול של דיב
+    //     if (divBorderField) {
+    //         divBorderField.addEventListener('input', (event) => {
+    //             element.style.border = event.target.value;
+    //         });
+    //     }
+
+    //     // הוספת מאזינים עבור רדיוס גבול של דיב
+    //     if (divBorderRadiusField) {
+    //         divBorderRadiusField.addEventListener('input', (event) => {
+    //             element.style.borderRadius = event.target.value + 'px';
+    //         });
+    //     }
+    // }
 
 }
 
@@ -236,8 +224,8 @@ class Element {
             case 'image':
                 this.element.innerHTML = `<img class="imageUser" scr="" alt="תמונה">`
                 this.propStyles = {
-                    src:'',
-                    alt:'',
+                    src: '',
+                    alt: '',
                     borderRadius: '0px',
                     width: '100px',
                     backgroundColor: 'lightgray',
@@ -260,6 +248,7 @@ class Element {
         }
     }
 
+
     selectElement() {
         // הסרת קלאס 'selected' מכל האלמנטים האחרים לפני סימון האלמנט הנוכחי
         document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
@@ -268,7 +257,7 @@ class Element {
         this.element.classList.add('selected');
 
         // הצגת פאנל עריכה מתאים
-        panel.showElementEditingPanel(this.element);  // העבר את האלמנט עצמו כאן, לא את הסוג
+        panel.showElementEditingPanel(this);  // העבר את האלמנט עצמו כאן, לא את הסוג
     }
 
 

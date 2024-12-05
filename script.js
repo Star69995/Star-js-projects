@@ -6,6 +6,7 @@ const projects = [
     { name: "משחק מתמטי", url: "mathGame/"},
     {name: "מזג אוויר", url: "weather/"},
     {name: "בונה דפים", url: "pageBuilder/"},
+    {name: "מחשבון קרשים", url: "Mai's calc/"},
 ];
 
 const container = document.getElementById('projects-container');
