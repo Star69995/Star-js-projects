@@ -226,3 +226,27 @@ span {
     direction: ltr;
     text-align: right;
 }
+
+.floating-error {
+    position: absolute;
+    top: -20px;
+    /* מיקום מעל השדה */
+    left: 0;
+    font-size: 0.9em;
+    color: red;
+    white-space: nowrap;
+}
+
+.hidden {
+    display: none;
+}
+
+.input-wrapper {
+    position: relative;
+    /* מיקום יחסי לאפשר הצגת הודעות */
+}
+
+.size-input {
+    margin-bottom: 30px;
+    /* השאר מקום להודעה */
+}

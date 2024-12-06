@@ -1,12 +1,70 @@
-document.getElementById('calculate-btn').addEventListener('click', () => {
-    const numPieces = parseInt(document.getElementById('num-pieces').value);
-    const sizes = Array.from(document.querySelectorAll('.size-input')).map(input => parseFloat(input.value));
-    const rangeLow = parseFloat(document.getElementById('range-low').value);
-    const rangeHigh = parseFloat(document.getElementById('range-high').value);
-    const output = document.getElementById('output');
+// אסוף את כל האלמנטים בשימוש
+const elements = {
+    numPieces: document.getElementById('num-pieces'),
+    sizeInputs: document.querySelectorAll('.size-input'),
+    rangeLow: document.getElementById('range-low'),
+    rangeHigh: document.getElementById('range-high'),
+    output: document.getElementById('output'),
+    calculateBtn: document.getElementById('calculate-btn'),
+    clearBtn: document.getElementById('clear-btn'),
+    toggleInstructionsBtn: document.getElementById('toggle-instructions'),
+    fullInstructions: document.getElementById('full-instructions'),
+};
 
-    output.textContent = '';  // Clear previous output
+// חישוב קומבינציות
+elements.calculateBtn.addEventListener('click', () => {
+    // בדיקת תקינות השדות
+    let isValid = true;
+    let outputMessage = '';
 
+    // בדיקת "מספר חתיכות"
+    if (!elements.numPieces.checkValidity()) {
+        isValid = false;
+        outputMessage += 'מספר החתיכות אינו תקין: ' + elements.numPieces.validationMessage + '\n';
+        elements.numPieces.focus();
+    }
+
+    // בדיקת טווח מינימלי
+    else if (!elements.rangeLow.checkValidity()) {
+        isValid = false;
+        outputMessage += 'טווח מינימלי אינו תקין: ' + elements.rangeLow.validationMessage + '\n';
+        elements.rangeLow.focus();
+    }
+
+    // בדיקת טווח מקסימלי
+    else if (!elements.rangeHigh.checkValidity()) {
+        isValid = false;
+        outputMessage += 'טווח מקסימלי אינו תקין: ' + elements.rangeHigh.validationMessage + '\n';
+        elements.rangeHigh.focus();
+    }
+
+    // בדיקת כל שדות הגודל
+    else {
+        for (let i = 0; i < elements.sizeInputs.length; i++) {
+            const sizeInput = elements.sizeInputs[i];
+            if (!sizeInput.checkValidity()) {
+                isValid = false;
+                outputMessage += `גודל ${i + 1} אינו תקין: ` + sizeInput.validationMessage + '\n';
+                sizeInput.focus();
+                break;
+            }
+        }
+    }
+
+    // אם השדות אינם תקינים
+    if (!isValid) {
+        elements.output.textContent = outputMessage;
+        return;
+    }
+
+    // אם כל השדות תקינים, מבצע את החישוב
+    const numPieces = parseInt(elements.numPieces.value);
+    const sizes = Array.from(elements.sizeInputs).map(input => parseFloat(input.value));
+    const rangeLow = parseFloat(elements.rangeLow.value);
+    const rangeHigh = parseFloat(elements.rangeHigh.value);
+    elements.output.textContent = ''; // נקה את הפלט הקודם
+
+    // הקוד הקיים של חישוב קומבינציות...
     let isCombination = false;
 
     for (let i = 1; i <= numPieces; i++) {
@@ -15,18 +73,15 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         const uniqueCombinations = getUniqueCombinations(filteredCombinations);
 
         if (uniqueCombinations.length > 0) {
-            // Add a header for the number of pieces
             const numPiecesHeader = document.createElement('div');
             numPiecesHeader.classList.add('num-pieces-header');
             numPiecesHeader.textContent = `${i} חתיכות:`;
-            output.appendChild(numPiecesHeader);
+            elements.output.appendChild(numPiecesHeader);
 
             uniqueCombinations.forEach((combination, index) => {
                 if (combination.includes(0)) return; // Skip combinations with 0
-
                 isCombination = true;
 
-                // Create HTML elements dynamically for each combination
                 const combinationDiv = document.createElement('div');
                 combinationDiv.classList.add('combination');
 
@@ -45,7 +100,7 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
                     piecesDiv.appendChild(pieceDetail);
                 });
                 combinationDiv.appendChild(piecesDiv);
-                output.appendChild(combinationDiv);
+                elements.output.appendChild(combinationDiv);
             });
         }
     }
@@ -54,12 +109,8 @@ document.getElementById('calculate-btn').addEventListener('click', () => {
         const errorDiv = document.createElement('div');
         errorDiv.classList.add('error-message');
         errorDiv.textContent = "לא נמצאו קומבינציות.";
-        output.appendChild(errorDiv);
+        elements.output.appendChild(errorDiv);
     }
-});
-
-document.getElementById('clear-btn').addEventListener('click', () => {
-    document.getElementById('output').textContent = '';
 });
 
 function getCombinations(arr, len) {
@@ -95,15 +146,87 @@ function countPieces(combination) {
         return acc;
     }, {});
 }
-document.getElementById('toggle-instructions').addEventListener('click', () => {
-    const instructions = document.getElementById('full-instructions');
 
-    // Toggle the visibility of the content
-    if (instructions.style.display === "none"|| instructions.style.display === "") {
-        instructions.style.display = "block";
-        document.getElementById('toggle-instructions').textContent = "הסתרת הסבר"; // Change button text
+
+
+// ניקוי הפלט
+elements.clearBtn.addEventListener('click', () => {
+    elements.output.textContent = '';
+});
+
+// הצגת/הסתרת הסבר
+elements.toggleInstructionsBtn.addEventListener('click', () => {
+    if (elements.fullInstructions.style.display === "none" || elements.fullInstructions.style.display === "") {
+        elements.fullInstructions.style.display = "block";
+        elements.toggleInstructionsBtn.textContent = "הסתרת הסבר";
     } else {
-        instructions.style.display = "none";
-        document.getElementById('toggle-instructions').textContent = "הסבר על הכלי"; // Revert button text
+        elements.fullInstructions.style.display = "none";
+        elements.toggleInstructionsBtn.textContent = "הסבר על הכלי";
     }
 });
+
+
+
+
+
+
+// ולידציה לשדה "מספר החתיכות"
+elements.numPieces.addEventListener('input', () => {
+    const numPieces = parseInt(elements.numPieces.value);
+
+    if (!Number.isInteger(numPieces) || numPieces <= 0) {
+        elements.numPieces.setCustomValidity('יש להזין מספר שלם וחיובי.');
+    } else {
+        elements.numPieces.setCustomValidity('');
+    }
+    elements.numPieces.reportValidity(); // מציג את הודעת השגיאה
+});
+
+// ולידציה לשדות הגדלים
+elements.sizeInputs.forEach((input, index) => {
+    input.addEventListener('input', () => {
+        const size = parseFloat(input.value);
+
+        if (isNaN(size) || size <= 0) {
+            input.setCustomValidity(`גודל הקורה  חייב להיות חיובי.`);
+        } else {
+            input.setCustomValidity('');
+        }
+        input.reportValidity();
+    });
+});
+
+// ולידציה לטווחים
+elements.rangeLow.addEventListener('input', validateRange);
+elements.rangeHigh.addEventListener('input', validateRange);
+
+function validateRange() {
+    const rangeLow = parseFloat(elements.rangeLow.value);
+    const rangeHigh = parseFloat(elements.rangeHigh.value);
+
+    if (isNaN(rangeLow)) {
+        elements.rangeLow.setCustomValidity('יש להזין ערך תקין.');
+    } else {
+        elements.rangeLow.setCustomValidity('');
+    }
+
+    if (isNaN(rangeHigh)) {
+        elements.rangeHigh.setCustomValidity('יש להזין ערך תקין.');
+    } else {
+        elements.rangeHigh.setCustomValidity('');
+    }
+
+    if (!isNaN(rangeLow) && !isNaN(rangeHigh) && rangeLow > rangeHigh) {
+        elements.rangeLow.setCustomValidity('הערך של הטווח המינימלי לא יכול להיות גדול מהטווח המקסימלי.');
+        elements.rangeHigh.setCustomValidity('הערך של הטווח המקסימלי לא יכול להיות קטן מהטווח המינימלי.');
+    } else {
+        elements.rangeLow.setCustomValidity('');
+        elements.rangeHigh.setCustomValidity('');
+    }
+
+    elements.rangeLow.reportValidity();
+    elements.rangeHigh.reportValidity();
+}
+
+
+
