@@ -79,112 +79,25 @@ class Panel {
     }
 
 
-    // addEventListeners(element) {
-    //     // בדוק אם האלמנט קיים לפני הוספת מאזינים
-    //     const textContentField = document.getElementById('textContent');
-    //     const fontSizeField = document.getElementById('fontSize');
-    //     const fontFamilyField = document.getElementById('fontFamily');
-    //     const underlineColorField = document.getElementById('underlineColor');
-    //     const boldToggleField = document.getElementById('boldToggle');
-    //     const imageUrlField = document.getElementById('imageUrl');
-    //     const imageWidthField = document.getElementById('imageWidth');
-    //     const imageHeightField = document.getElementById('imageHeight');
-    //     const imageBorderRadiusField = document.getElementById('imageBorderRadius');
-    //     const divBackgroundColorField = document.getElementById('divBackgroundColor');
-    //     const divBorderField = document.getElementById('divBorder');
-    //     const divBorderRadiusField = document.getElementById('divBorderRadius');
-
-    //     // הוספת מאזינים עבור טקסט
-    //     if (textContentField) {
-    //         textContentField.addEventListener('input', (event) => {
-    //             element.innerText = event.target.value;
-    //         });
-    //     }
-
-    //     // הוספת מאזינים עבור גודל פונט
-    //     if (fontSizeField) {
-    //         fontSizeField.addEventListener('input', (event) => {
-    //             element.style.fontSize = event.target.value + 'px';
-    //         });
-    //     }
-
-    //     // הוספת מאזינים עבור פונט
-    //     if (fontFamilyField) {
-    //         fontFamilyField.addEventListener('change', (event) => {
-    //             element.style.fontFamily = event.target.value;
-    //         });
-    //     }
-
-    //     // הוספת מאזינים עבור צבע קו תחתון
-    //     if (underlineColorField) {
-    //         underlineColorField.addEventListener('input', (event) => {
-    //             element.style.textDecoration = `underline ${event.target.value}`;
-    //         });
-    //     }
-
-    //     // הוספת מאזינים עבור בולד
-    //     if (boldToggleField) {
-    //         boldToggleField.addEventListener('change', (event) => {
-    //             element.style.fontWeight = event.target.checked ? 'bold' : 'normal';
-    //         });
-    //     }
-
-    //     // הוספת מאזינים עבור קישור תמונה
-    //     if (imageUrlField) {
-    //         imageUrlField.addEventListener('input', (event) => {
-    //             element.src = event.target.value;
-    //         });
-    //     }
-
-    //     // הוספת מאזינים עבור רוחב תמונה
-    //     if (imageWidthField) {
-    //         imageWidthField.addEventListener('input', (event) => {
-    //             element.width = event.target.value;
-    //         });
-    //     }
-
-    //     // הוספת מאזינים עבור גובה תמונה
-    //     if (imageHeightField) {
-    //         imageHeightField.addEventListener('input', (event) => {
-    //             element.height = event.target.value;
-    //         });
-    //     }
-
-    //     // הוספת מאזינים עבור רדיוס פינות תמונה
-    //     if (imageBorderRadiusField) {
-    //         imageBorderRadiusField.addEventListener('input', (event) => {
-    //             element.style.borderRadius = event.target.value + 'px';
-    //         });
-    //     }
-
-    //     // הוספת מאזינים עבור צבע רקע של דיב
-    //     if (divBackgroundColorField) {
-    //         divBackgroundColorField.addEventListener('input', (event) => {
-    //             element.style.backgroundColor = event.target.value;
-    //         });
-    //     }
-
-    //     // הוספת מאזינים עבור גבול של דיב
-    //     if (divBorderField) {
-    //         divBorderField.addEventListener('input', (event) => {
-    //             element.style.border = event.target.value;
-    //         });
-    //     }
-
-    //     // הוספת מאזינים עבור רדיוס גבול של דיב
-    //     if (divBorderRadiusField) {
-    //         divBorderRadiusField.addEventListener('input', (event) => {
-    //             element.style.borderRadius = event.target.value + 'px';
-    //         });
-    //     }
-    // }
-
 }
 
 class Element {
-    constructor(type) {
+    constructor(type, savedId, propStyles) {
         this.type = type;
-        this.createElement();
+        if (savedId > 0) {
+            this.id = savedId;
+        } else {
+            this.id = globalId++;
+            localStorage.globalId = globalId;
+        }
+        // console.log(this.id);
+        if (propStyles) {
+            this.propStyles = propStyles;
+            this.addElement();
+        } else {
+            this.createNewElement();
+        }
+
 
         document.addEventListener('click', (event) => {
             document.querySelectorAll('.selected').forEach(selectedEl => {
@@ -196,11 +109,31 @@ class Element {
         });
 
     }
-    createElement() {
-        this.element = document.createElement('div');
+
+    addElement() {
         switch (this.type) {
             case 'div':
-                this.element.innerHTML = `<div class="divUser"></div>`
+                this.element = document.createElement('div');
+                break;
+            case 'text':
+                this.element = document.createElement('p');
+                break;
+            case 'image':
+                this.element = document.createElement('img');
+                break;
+        }
+
+        this.applyStyles();
+        this.element.addEventListener('click', () => this.selectElement());
+        main.appendChild(this.element);
+        this.saveToLocalStorage();
+
+    }
+
+    createNewElement() {
+        switch (this.type) {
+            case 'div':
+                this.element = document.createElement('div');
                 this.propStyles = {
                     borderRadius: '0px',
                     width: '100%',
@@ -208,45 +141,52 @@ class Element {
                     height: '100px',
                     borderColor: 'black',
                     borderStyle: 'solid',
-                    borderWidth: '2px'
-                }
+                    borderWidth: '2px',
+                };
                 break;
             case 'text':
-                this.element.innerHTML = `<p class="textUser">טקסט</p>`
+                this.element = document.createElement('p');
                 this.propStyles = {
+                    textContent: 'טקסט',
+                    color: 'black',
+                    fontSize: '16px',
+                    fontFamily: 'Arial',
                     width: '100%',
                     backgroundColor: 'transparent',
                     borderColor: 'none',
                     borderStyle: 'none',
-                    borderWidth: '0px'
-                }
+                    borderWidth: '0px',
+                    textAlign: 'justify',
+                };
                 break;
             case 'image':
-                this.element.innerHTML = `<img class="imageUser" scr="" alt="תמונה">`
+                this.element = document.createElement('img');
                 this.propStyles = {
                     src: '',
-                    alt: '',
                     borderRadius: '0px',
                     width: '100px',
                     backgroundColor: 'lightgray',
-                    height: '100px',
+                    height: 'fit-content',
                     borderColor: 'none',
                     borderStyle: 'none',
-                    borderWidth: '0px'
-                }
+                    borderWidth: '0px',
+                };
                 break;
         }
+
         this.applyStyles();
         this.element.addEventListener('click', () => this.selectElement());
-
-        main.appendChild(this.element)
+        main.appendChild(this.element);
     }
 
     applyStyles() {
         for (const key in this.propStyles) {
             this.element.style[key] = this.propStyles[key];
+            this.element[key] = this.propStyles[key];
         }
+        this.saveToLocalStorage();
     }
+
 
 
     selectElement() {
@@ -260,8 +200,6 @@ class Element {
         panel.showElementEditingPanel(this);  // העבר את האלמנט עצמו כאן, לא את הסוג
     }
 
-
-
     deselectElement(event) {
         // נוודא שהלחיצה לא התבצעה בתוך האלמנט עצמו או בתוך הפאנל
         if (!this.element.contains(event.target) && !panel.panel.contains(event.target)) {
@@ -270,7 +208,46 @@ class Element {
         }
     }
 
+    saveToLocalStorage() {
+        try {
+            // בדוק אם יש כבר אלמנטי שמורים, או התחל מרשימה ריקה
+            let savedElements = JSON.parse(localStorage.getItem('elements')) || [];
 
+            // console.log("id:", this.id, "type:", this.type, "propStyles:", this.propStyles);
+            // ודא שהשדות אכן מוגדרים
+            if (!this.id || !this.type || !this.propStyles) {
+                console.error("לא כל השדות הדרושים מוגדרים! id, type, או propStyles חסרים.");
+                return;
+            }
+
+            // בדוק האם יש אלמנט קיים עם אותו ID
+            const elementIndex = savedElements.findIndex(el => el.id === this.id);
+
+            if (elementIndex > -1) {
+                // עדכן את האלמנט הקיים במקום להוסיף חדש
+                savedElements[elementIndex] = {
+                    id: this.id,
+                    type: this.type,
+                    propStyles: this.propStyles,
+                };
+                // console.log(`אלמנט עם מזהה ${this.id} עודכן בהצלחה.`);
+            } else {
+                // אם אין אלמנט קיים, הוסף אותו
+                savedElements.push({
+                    id: this.id,
+                    type: this.type,
+                    propStyles: this.propStyles,
+                });
+                // console.log(`אלמנט חדש נוסף עם מזהה ${this.id}.`);
+            }
+
+            // שמור את הרשימה המעודכנת ב-localStorage
+            localStorage.setItem('elements', JSON.stringify(savedElements));
+            // console.log("האלמנט נשמר בהצלחה:", savedElements);
+        } catch (error) {
+            console.error("שגיאה בשמירה ל-localStorage:", error);
+        }
+    }
 }
 
 
@@ -280,4 +257,81 @@ const panel = new Panel();
 const main = document.createElement('section');
 main.classList.add('main');
 document.body.appendChild(main);
+
+let globalId = JSON.parse(localStorage.getItem('globalId')) || 1;
+function loadFromLocalStorage() {
+    
+    // console.log(globalId);
+    const savedElements = JSON.parse(localStorage.getItem('elements'));
+    if (savedElements) {
+        savedElements.forEach(({ id, type, propStyles}) => {
+            // console.log(id, type, propStyles);
+            // צור אלמנט חדש דרך המחלקה Element
+            const elementInstance = new Element(type, id, propStyles);
+        });
+    }
+}
+
+
+
+loadFromLocalStorage();
+
+
+
+function checkScreenSize() {
+    const messageId = "mobile-warning";
+    let messageEl = document.getElementById(messageId);
+
+    if (window.innerWidth < 600) {
+        if (!messageEl) {
+            // יצירת האלמנט של ההודעה
+            messageEl = document.createElement('div');
+            messageEl.id = messageId;
+            messageEl.style.cssText = `
+				position: fixed;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				background: white;
+				border: 2px solid red;
+				border-radius: 10px;
+				padding: 20px;
+				box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+				z-index: 1000;
+				text-align: center;
+				width: 300px;
+			`;
+
+            // תוכן ההודעה
+            messageEl.innerHTML = `
+				<p style="margin-bottom: 10px;">האתר אינו מותאם לנייד.</p>
+				<p style="margin-bottom: 10px;">לחוויה הטובה ביותר, רצוי להשתמש במחשב.</p>
+				<button id="close-warning" style="
+					background: red;
+					color: white;
+					border: none;
+					padding: 10px 20px;
+					border-radius: 5px;
+					cursor: pointer;
+				">סגור</button>
+			`;
+
+            // הוספת האלמנט לגוף
+            document.body.appendChild(messageEl);
+
+            // האזנה ללחיצה על כפתור הסגירה
+            document.getElementById('close-warning').addEventListener('click', () => {
+                messageEl.remove();
+            });
+        }
+    } else if (messageEl) {
+        messageEl.remove();
+    }
+}
+
+// בדיקה בעת טעינת הדף
+checkScreenSize();
+
+// בדיקה בעת שינוי גודל המסך
+window.addEventListener('resize', checkScreenSize);
 
