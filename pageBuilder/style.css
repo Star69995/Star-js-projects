@@ -12,7 +12,7 @@
 
 .editing-panel {
     display: flex;
-    gap: 10px;
+    gap: 7px;
     background-color: rgb(41, 41, 41);
     padding: 10px;
     align-items: start;
@@ -107,4 +107,15 @@ body {
 
 .selected {
     box-shadow: 0 0 5px 5px rgba(25, 118, 210, 0.7);
+}
+
+#delete-btn{
+    margin: 0 auto;
+}
+
+.clear-button-container {
+    margin: 0 auto;
+    margin-top: auto;
+    padding: 10px;
+    text-align: center;
 }

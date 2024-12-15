@@ -6,6 +6,9 @@ class Panel {
                                 <button data-type="image">הוסף תמונה</button>
                                 <button data-type="div">הוסף דיב</button>
                             </div>
+                            <div class='clear-button-container'>
+                            <button id="clear">ניקוי הדף</button>
+                            </div>
                             </div>`;
         this.panel = document.createElement('div');
         this.panel.innerHTML = this.addingPanel;
@@ -21,6 +24,7 @@ class Panel {
                 new Element(elementType);
             }
         });
+        this.showAddingPanel();
 
     }
 
@@ -30,6 +34,22 @@ class Panel {
 
     showAddingPanel() {
         this.showPanel(this.addingPanel);
+        document.getElementById('clear').addEventListener('click', () => {
+            // ניקוי האלמנטים מה-DOM
+            const mainSection = document.querySelector('.main');
+            mainSection.innerHTML = '';
+
+            // ניקוי ה-localStorage
+            localStorage.removeItem('elements');
+
+            // אופציונלי: איפוס מזהה גלובלי
+            globalId = 1;
+            localStorage.setItem('globalId', globalId);
+
+            // סגירת פאנל העריכה
+            this.showAddingPanel();
+        });
+
     }
 
     hidePanel() {
@@ -49,6 +69,9 @@ class Panel {
                 id="${key}" value="${value}">
             <br>`;
             });
+
+            panelForm += `
+            <button id="delete-btn">מחיקת אלמנט</button>`;
 
             panelForm += `</div>`;
             this.showPanel(panelForm);
@@ -70,6 +93,20 @@ class Panel {
 
                 }
             });
+            document.getElementById('delete-btn').addEventListener('click', () => {
+                // הסרת האלמנט מה-DOM
+                element.element.remove();
+
+                // מחיקת האלמנט מה-localStorage
+                let savedElements = JSON.parse(localStorage.getItem('elements')) || [];
+                savedElements = savedElements.filter(el => el.id !== element.id);
+                localStorage.setItem('elements', JSON.stringify(savedElements));
+
+                // סגירת פאנל העריכה
+                this.showAddingPanel();
+            });
+
+
         }
     }
 

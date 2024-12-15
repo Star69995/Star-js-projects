@@ -29,12 +29,9 @@ async function displayWeather(data, city) {
 
     resultsContainer.classList.remove('hidden');
 
-    console.log(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=metric&lang=he`);
     const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=metric&lang=he`);
 
     const forecastData = await response.json();
-
-    console.log(forecastData);
 
     // הצגת תחזית שעתית (הפונקציה תטען בנפרד)
     await display3HourForecast(forecastData);
@@ -240,6 +237,7 @@ function getClothingRecommendation(temp, feelsCold = false, feelsHot = false) {
 
 form.addEventListener('submit', (e) => {
     e.preventDefault();
+    resultsContainer.classList.add('hidden');
     const city = document.getElementById('city-input').value.trim();
     if (city) {
         getWeatherByCity(city);
@@ -249,7 +247,6 @@ form.addEventListener('submit', (e) => {
 
 
 async function getWeatherByCity(city) {
-    console.log("מזג האוויר עבור:", city);
     try {
         const response = await fetch(
             `https://api.openweathermap.org/data/2.5/weather?q=${city}&lang=he&units=metric&appid=${API_KEY}`
@@ -262,8 +259,8 @@ async function getWeatherByCity(city) {
         }
 
         // הצג נתוני מזג האוויר
-        console.log("נתוני מזג האוויר:", data);
         displayWeather(data, city);
+        errorContainer.classList.add("hidden");
     } catch (error) {
         console.error("שגיאה בזיהוי המזג האוויר:", error.message);
         errorContainer.textContent = "שגיאה בקבלת נתוני מזג האוויר.";
@@ -283,7 +280,6 @@ async function getCityName(lat, lon) {
             let hebrewCityName = data[0].local_names?.he || data[0].name;
 
             hebrewCityName = hebrewCityName.replace(/תל[־ ]אביב[־– ]?יפו/, 'תל אביב');
-            console.log("שם העיר בעברית:", hebrewCityName);
 
             return hebrewCityName
         } else {
