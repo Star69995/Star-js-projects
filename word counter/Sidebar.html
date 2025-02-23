@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ספירת מילים</title>
+    <style>
+        :root {
+            --primary-color: #06D6A0;
+            --primary-color: #48CAE4;
+            /* כחול בהיר */
+            --secondary-color: #00B4D8;
+            /* כחול */
+            --forth-color: #277481;
+            /* תכלת */
+            --fifth-color: #CAF0F8;
+            /* תכלת בהיר */
+            --sixth-color: #0077B6;
+            /* כחול כהה */
+            --text-color: #03045E;
+            --crossed-text-color: #2D3436;
+            --radius: 20px;
+            --padding: 24px;
+        }
+
+
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Varela Round";
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f6ff;
+            width: 90vw;
+            margin: auto;
+        }
+
+        h3 {
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #042255;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+        }
+
+        button {
+            background-color: #4299e1;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-evenly;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button:hover {
+            background-color: #3182ce;
+        }
+
+        .output {
+            margin-top: 24px;
+            background-color: #f8fafc;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .output div {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .update-animation {
+            text-align: center;
+            color: #48bb78;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            margin: 16px 0;
+        }
+
+        .update-animation.active {
+            opacity: 1;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background-color: #c9cdd1;
+            border-radius: 9999px;
+            height: 8px;
+            overflow: hidden;
+            margin-top: 16px;
+        }
+
+        .progress-bar {
+            width: 0;
+            background-color: #48bb78;
+            height: 100%;
+            transition: width 0.1s linear;
+        }
+
+        fieldset {
+            border: 2px solid #007BFF;
+            background-color: #d5e6f7;
+            border-radius: 20px;
+            padding: 10px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        legend {
+            font-size: 14px;
+            font-weight: bold;
+            color: #007BFF;
+            padding: 0 5px;
+        }
+
+        .toggle-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .toggle-button {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="radio"]:checked+.toggle-button {
+            background-color: #007bff;
+            color: white;
+        }
+
+
+
+
+        .delete-button {
+            border: none;
+            background: transparent;
+            color: var(--text-color);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 5px;
+            position: absolute;
+            top: 0;
+            left: 10px;
+        }
+
+        .delete-button:hover {
+            /* color: var(--primary-color); */
+            transform: scale(1.2);
+            /* box-shadow: none; */
+            background: transparent;
+        }
+
+
+        .delete-button.pressed-once {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <h3>ספירת מילים לפי מחיצות</h3>
+
+    <!-- אפשרות בחירת מצב -->
+    <!-- <div class="toggle-container"> -->
+    <!-- <p>בחר מצב:</p> -->
+    <div class="toggle-buttons">
+        <input type="radio" id="inProgress" name="status" value="inProgress" hidden>
+        <label for="inProgress" class="toggle-button">בעבודה</label>
+
+        <input type="radio" id="finished" name="status" value="finished" hidden>
+        <label for="finished" class="toggle-button">עריכה סופית</label>
+
+        <input type="radio" id="other" name="status" value="other" hidden>
+        <label for="other" class="toggle-button">אחר</label>
+    </div>
+    <!-- </div> -->
+
+
+
+    <div id="sections-container">
+    </div>
+
+    <div class="input-group button-group">
+        <button onclick="addSection()">הוסף מקטע</button>
+        <button onclick="processText()">עדכן ספירה עכשיו</button>
+    </div>
+
+    <div id="updateAnimation" class="update-animation">זמן עד העדכון הבא</div>
+    <div class="progress-bar-container">
+        <div id="progressBar" class="progress-bar"></div>
+    </div>
+
+    <div id="sections" class="output"></div>
+
+    <script>
+        const sectionsContainer = document.getElementById('sections-container');
+        const animationElement = document.getElementById('updateAnimation');
+        const progressBar = document.getElementById('progressBar');
+        const container = document.getElementById('sections');
+
+        // for the updating
+        let progressInterval;
+
+        // for the animation
+        let updateInterval = 10000;
+        let animationProgressInterval;
+        let progress = 0;
+
+        let sectionInstances = {};  // This will hold all section instances
+
+        const sections = {
+            inProgress: {
+                section1: {
+                    name: "סיכום פרק קודם",
+                    startDelimiter: "תקציר הפרק הקודם",
+                    endDelimiter: "בפרקים הקודמים:",
+                    goal: 400
+                },
+                section2: {
+                    name: "הפרק ותקציר לקוראים",
+                    startDelimiter: "בפרקים הקודמים:",
+                    endDelimiter: "לגעת בפרק:",
+                    goal: 1100
+                },
+                section3: {
+                    name: "מידע עזר",
+                    startDelimiter: "לגעת בפרק:",
+                    endDelimiter: "",
+                    goal: 500
+                }
+            },
+            finished: {
+                section1: {
+                    name: "הפרק ותקציר לקוראים",
+                    startDelimiter: "בפרקים הקודמים:",
+                    endDelimiter: "ההמשך יבוא!",
+                    goal: 1000
+                }
+            }
+        }
+
+
+        class Section {
+            constructor(name = "", startDelimiter = "", endDelimiter = "", savedId, goal = 200) {
+                this.name = name || `מקטע ${document.querySelectorAll('.section').length + 1}`;
+                if (savedId > 0) {
+                    this.id = savedId;
+                } else {
+                    this.id = globalId++;
+                    localStorage.globalId = globalId;
+                }
+                this.startDelimiter = startDelimiter;
+                this.endDelimiter = endDelimiter;
+                this.goal = goal;
+
+                sectionInstances[this.id] = this;
+
+                this.container = this.createContainer(sectionsContainer);
+                this.deleteRequested = false;
+                this.deleteTimer = null;
+                this.attachEvents();
+
+            }
+
+            // יצירת הקונטיינר של הסקשן
+            createContainer(container) {
+                const fieldset = document.createElement('fieldset');
+                fieldset.classList.add('section');
+                fieldset.setAttribute('aria-labelledby', `legend${this.id}`);
+                fieldset.innerHTML = `
+			<legend id="legend${this.id}">${this.name}</legend>
+            <button id="deleteButton${this.id}" class="delete-button">✖</button>
+
+			<div id="startDelimiterGroup${this.id}" class="input-group">
+				<label id="startDelimiterLabel${this.id}" for="startDelimiterInput${this.id}">תחילת מקטע:</label>
+				<input id="startDelimiterInput${this.id}" type="text" class="startDelimiter" value="${this.startDelimiter}">
+			</div>
+			<div id="endDelimiterGroup${this.id}" class="input-group">
+				<label id="endDelimiterLabel${this.id}" for="endDelimiterInput${this.id}">סוף מקטע:</label>
+				<input id="endDelimiterInput${this.id}" type="text" class="endDelimiter" value="${this.endDelimiter}">
+			</div>
+			
+            <div id="goalGroup${this.id}" class="input-group">
+				<label id="goalLabel${this.id}" for="goalInput${this.id}">יעד:</label>
+				<input id="goalInput${this.id}" type="text" class="goal" value="${this.goal}" >
+			</div>
+
+            <p>מילים בחלק זה: <span id="wordCount${this.id}"></span></p>
+            
+            <div id="progressBarContainer${this.id}" class="progress-bar-container">
+                <div id="progressBar${this.id}" class="progress-bar"></div>
+            </div>
+		    `;
+                // עיצוב כפתור המחיקה
+                const deleteButton = fieldset.querySelector('.delete-button');
+
+                container.appendChild(fieldset);
+                return fieldset;
+            }
+
+            // עדכון מספר המילים ומדד ההתקדמות
+            updateProgress() {
+                const goalInput = this.container.querySelector(`#goalInput${this.id}`);
+                this.goal = parseInt(goalInput.value);
+                const wordCountElement = this.container.querySelector(`#wordCount${this.id}`);
+                if (wordCountElement) {
+                    const wordCount = parseInt(wordCountElement.textContent);
+                    if (isNaN(wordCount) || isNaN(this.goal) || this.goal <= 0) {
+                        console.error('Invalid word count or goal value');
+                        return;
+                    }
+                    const progressBar = this.container.querySelector(`#progressBar${this.id}`);
+                    const progressPercentage = Math.min((wordCount / this.goal) * 100, 100);
+                    progressBar.style.width = `${progressPercentage}%`;
+                } else {
+                    console.error(`No word count element found for section ${this.id}`);
+                }
+            }
+
+
+            saveState() {
+                if (status != 'other') return;
+                try {
+                    // בדוק אם יש כבר אלמנטי שמורים, או התחל מרשימה ריקה
+                    let savedSections = JSON.parse(localStorage.getItem('sections')) || [];
+
+                    // ודא שהשדות אכן מוגדרים
+                    if (!this.id || !this.name) {
+                        console.error("לא כל השדות הדרושים מוגדרים! id, type, או propStyles חסרים.");
+                        return;
+                    }
+
+                    // בדוק האם יש אלמנט קיים עם אותו ID
+                    const elementIndex = savedSections.findIndex(el => el.id === this.id);
+
+                    if (elementIndex > -1) {
+                        // עדכן את האלמנט הקיים במקום להוסיף חדש
+                        savedSections[elementIndex] = {
+                            id: this.id,
+                            name: this.name,
+                            startDelimiter: this.startDelimiter,
+                            endDelimiter: this.endDelimiter,
+                            goal: this.goal
+                        };
+                        // console.log(`אלמנט עם מזהה ${this.id} עודכן בהצלחה.`);
+                    } else {
+                        // אם אין אלמנט קיים, הוסף אותו
+                        savedSections.push({
+                            id: this.id,
+                            name: this.name,
+                            startDelimiter: this.startDelimiter,
+                            endDelimiter: this.endDelimiter,
+                            goal: this.goal
+                        });
+                        // console.log(`אלמנט חדש נוסף עם מזהה ${this.id}.`);
+                    }
+
+                    // שמור את הרשימה המעודכנת ב-localStorage
+                    localStorage.setItem('sections', JSON.stringify(savedSections));
+                    // console.log("האלמנט נשמר בהצלחה:", savedElements);
+                } catch (error) {
+                    console.error("שגיאה בשמירה ל-localStorage:", error);
+                }
+            }
+
+            // צירוף אירועים למחיקה
+            attachEvents() {
+                const deleteButton = this.container.querySelector('.delete-button');
+
+                // save the filedset text
+                this.container.querySelector('.startDelimiter').addEventListener('input', (e) => {
+                    this.startDelimiter = e.target.value;
+                    this.saveState();
+                });
+                this.container.querySelector('.endDelimiter').addEventListener('input', (e) => {
+                    this.endDelimiter = e.target.value;
+                    this.saveState();
+                });
+                this.container.querySelector('.goal').addEventListener('input', (e) => {
+                    this.goal = e.target.value;
+                    this.saveState();
+                    this.updateProgress();
+                });
+
+                // אירוע מחיקה
+                deleteButton.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    if (!this.deleteRequested) {
+                        this.startDeleteCountdown(deleteButton);
+                    } else {
+                        this.removeSection();
+                    }
+                });
+
+                // ביטול מחיקה בלחיצה מחוץ למקטע
+                document.addEventListener('click', (event) => {
+                    if (!this.container.contains(event.target)) {
+                        this.resetDeleteState(deleteButton);
+                    }
+                });
+            }
+
+            // התחלת מחיקה
+            startDeleteCountdown(deleteButton) {
+                this.deleteRequested = true;
+                deleteButton.classList.add('pressed-once');
+                this.deleteTimer = setTimeout(() => {
+                    this.resetDeleteState(deleteButton);
+                }, 3000);
+            }
+
+            // איפוס מצב מחיקה
+            resetDeleteState(deleteButton) {
+                this.deleteRequested = false;
+                deleteButton.classList.remove('pressed-once');
+                clearTimeout(this.deleteTimer);
+            }
+
+            // הסרת סקשן
+            removeSection() {
+
+                // מחיקת האלמנט מה-localStorage
+                let savedSections = JSON.parse(localStorage.getItem('sections')) || [];
+                savedSections = savedSections.filter(el => el.id !== this.id);
+                localStorage.setItem('sections', JSON.stringify(savedSections));
+
+                this.container.remove();
+            }
+        }
+
+        // פונקציה להוספת סקשן חדש
+        function addSection(name = "", startDelimiter = "", endDelimiter = "", id = null, goal = 200) {
+            new Section(name, startDelimiter, endDelimiter, id, goal);
+        }
+
+
+        // מאזין לכל כפתור רדיו כדי לעדכן את המקטעים כשיש שינוי
+        document.querySelectorAll('input[name="status"]').forEach(input => {
+            input.addEventListener('change', () => {
+                localStorage.setItem('selectedStatus', input.value); // שמירת המצב שנבחר
+                updateSections();
+            });
+        });
+
+
+
+        // פונקציה לעדכון המקטעים לפי המצב שנבחר
+        function updateSections() {
+            const statusElement = document.querySelector('input[name="status"]:checked');
+            // אם אין כפתור שנבחר, בחר את ברירת המחדל "בעבודה"
+            const status = statusElement ? statusElement.value : 'other';
+
+            sectionsContainer.innerHTML = ''; // מנקה את המקטעים הקיימים
+
+            // אם המצב הוא "אחר", הוסף מקטעים לפי בחירה אישית
+            if (status === 'other') {
+                // לדוגמה, צור מקטעים מותאמים אישית או תן למשתמש להוסיף אותם
+                const savedState = JSON.parse(localStorage.getItem('sections')) || [];
+                if (savedState.length > 0) {
+                    savedState.forEach(state => {
+                        new Section(state.name, state.startDelimiter, state.endDelimiter, state.id, state.goal);
+                    });
+                }
+                else {
+                    addSection();
+                }
+
+            } else {
+                const selectedSections = sections[status];
+
+                // יצירת המקטעים המתאימים למצב
+                for (const sectionKey in selectedSections) {
+                    const section = selectedSections[sectionKey];
+                    addSection(section.name, section.startDelimiter, section.endDelimiter, null, section.goal);
+                }
+            }
+
+
+            // הפסקת ה-interval הקודם והפעלת אחד חדש
+            clearInterval(progressInterval);  // הפסק את ה-interval הקודם
+            progressInterval = setInterval(() => {
+                processText();  // הפעל מחדש את הפונקציה
+            }, updateInterval); // עדכון לפי הזמן שנבחר
+        }
+
+
+        function runAnimation() {
+            animationElement.classList.add('active');
+            progressBar.style.width = "0%";
+
+            const step = 100 / (updateInterval / 100); // אחוזי התקדמות כל 100ms
+            progress = 0;
+
+            animationProgressInterval = setInterval(() => {
+                progress += step;
+                progressBar.style.width = `${Math.min(progress, 100)}%`;
+                if (progress >= 100) {
+                    clearInterval(animationProgressInterval);
+                }
+            }, 100); // מתעדכן כל 100ms
+
+        }
+
+        // פונקציה שמקבלת את כל המקטעים שנמצאים בקלט
+            function processText() {
+                // אוסף את כל המקטעים מהקלט
+                const startDelimiters = document.querySelectorAll('.startDelimiter');
+                const endDelimiters = document.querySelectorAll('.endDelimiter');
+
+                Object.values(sectionInstances).forEach(section => {
+                    section.updateProgress();
+                });
+
+                const delimiters = Array.from(startDelimiters).map((input, index) => ({
+                    start: input.value,
+                    end: endDelimiters[index].value,
+                }));
+
+                try {
+                    // קורא לפונקציה בצד השרת של Google Script
+                    google.script.run
+                        .withSuccessHandler((wordCounts) => {
+                            displayWordCounts(wordCounts);
+                        })
+                        .withFailureHandler((error) => {
+                            console.error('Error:', error);
+                            animationElement.textContent = 'שגיאה בעדכון';
+                            animationElement.style.color = '#e53e3e';
+                        })
+                        .getMultipleTextSectionsWithWordCount(delimiters);
+                }
+                catch (error) {
+                    console.error('Error:', error);
+                }
+                // מציג אנימציית עדכון
+                runAnimation();
+            }
+
+
+        function displayWordCounts(wordCounts) {
+            const fieldsets = document.querySelectorAll('fieldset');
+            wordCounts.forEach((count, index) => {
+                const fieldset = fieldsets[index];
+                const wordCountElement = fieldset.querySelector('p span');
+                if (wordCountElement) {
+                    wordCountElement.textContent = count;  // עדכון ספירת המילים בתוך ה-span במקטע המתאים
+                }
+            });
+        }
+
+
+        let memorySections = JSON.parse(localStorage.getItem('sections')) || [];
+        let globalId = memorySections.length === 0 ? 1 : JSON.parse(localStorage.getItem('globalId')) || 1;
+
+
+        let status = 'inProgress'
+        window.onload = () => {
+            const savedStatus = localStorage.getItem('selectedStatus') || status;
+            status = savedStatus;
+            if (savedStatus) {
+                const statusElement = document.getElementById(savedStatus);
+                if (statusElement) {
+                    statusElement.checked = true; // סימון המצב השמור
+                }
+            }
+            updateSections(); // עדכון המקטעים בהתאם למצב שנבחר
+        };
+
+
+    </script>
+</body>
+
+</html>
