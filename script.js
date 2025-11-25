@@ -1,13 +1,14 @@
 const projects = [
     { name: "האתר של סטאר", url: "https://star69995.github.io/star-site/" },
-{ name: "תשבץ", url: "https://star-crossword.vercel.app/" },
+    { name: "צעד קדימה", url: "https://beyond-borders-23adb.web.app/" },
+    { name: "תשבץ", url: "https://star-crossword.vercel.app/" },
     { name: "תשבץ דמו", url: "https://star69995.github.io/star-crossword/" },
     { name: "קריפטוגרמה", url: "https://star69995.github.io/star-site/js-projects/cryptogram/" },
     { name: "שעון עצר", url: "https://star69995.github.io/star-site/js-projects/timer/" },
-    { name: "מנהל משימות", url: "https://star69995.github.io/star-site/js-projects/task_manager/"},
-    { name: "משחק מתמטי", url: "https://star69995.github.io/star-site/js-projects/mathGame/"},
-    { name: "מזג אוויר", url: "https://star69995.github.io/star-site/js-projects/weather/"},
-    { name: "מחשבון קרשים", url: "https://star69995.github.io/star-site/js-projects/wood-calc/"},
+    { name: "מנהל משימות", url: "https://star69995.github.io/star-site/js-projects/task_manager/" },
+    { name: "משחק מתמטי", url: "https://star69995.github.io/star-site/js-projects/mathGame/" },
+    { name: "מזג אוויר", url: "https://star69995.github.io/star-site/js-projects/weather/" },
+    { name: "מחשבון קרשים", url: "https://star69995.github.io/star-site/js-projects/wood-calc/" },
 ];
 
 const container = document.getElementById('projects-container');
