@@ -16,6 +16,6 @@ const container = document.getElementById('projects-container');
 projects.forEach(project => {
     const projectDiv = document.createElement('div');
     projectDiv.className = 'project';
-    projectDiv.innerHTML = `<a href="${project.url}" class="button">${project.name}</a>`;
+    projectDiv.innerHTML = `<a href="${project.url}" class="button" target="_blank" rel="noopener noreferrer">${project.name}</a>`;
     container.appendChild(projectDiv);
 });
