@@ -18,6 +18,7 @@ const saveLinksBtn = document.getElementById('save-links-btn');
 
 let links = [];
 let editingPassword = sessionStorage.getItem('edit-password') || '';
+let dragSrcIndex = null;
 
 function faviconFor(url) {
     try {
@@ -68,7 +69,9 @@ function renderLinksList() {
     links.forEach((link, index) => {
         const row = document.createElement('div');
         row.className = 'link-row';
+        row.draggable = true;
         row.innerHTML = `
+            <span class="drag-handle" title="גרירה לשינוי סדר">&#9776;</span>
             <img class="favicon" src="${escapeAttr(faviconFor(link.url))}" alt="">
             <div class="link-fields">
                 <input class="name-input" type="text" value="${escapeAttr(link.name)}" placeholder="שם">
@@ -82,6 +85,32 @@ function renderLinksList() {
                 <button type="button" class="delete-btn">מחיקה</button>
             </div>
         `;
+
+        row.addEventListener('dragstart', e => {
+            dragSrcIndex = index;
+            row.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(index));
+        });
+        row.addEventListener('dragend', () => {
+            row.classList.remove('dragging');
+            dragSrcIndex = null;
+        });
+        row.addEventListener('dragover', e => {
+            e.preventDefault();
+            if (dragSrcIndex !== null && dragSrcIndex !== index) row.classList.add('drag-over');
+        });
+        row.addEventListener('dragleave', () => {
+            row.classList.remove('drag-over');
+        });
+        row.addEventListener('drop', e => {
+            e.preventDefault();
+            row.classList.remove('drag-over');
+            if (dragSrcIndex === null || dragSrcIndex === index) return;
+            const [moved] = links.splice(dragSrcIndex, 1);
+            links.splice(index, 0, moved);
+            renderLinksList();
+        });
 
         row.querySelector('.name-input').addEventListener('input', e => {
             links[index].name = e.target.value;

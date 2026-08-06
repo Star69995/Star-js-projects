@@ -311,6 +311,24 @@ a {
     border-radius: 12px;
     padding: 10px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    transition: box-shadow 0.15s, opacity 0.15s;
+}
+
+.link-row.dragging {
+    opacity: 0.4;
+}
+
+.link-row.drag-over {
+    box-shadow: 0 0 0 2px rgb(150, 90, 220);
+}
+
+.link-row .drag-handle {
+    cursor: grab;
+    flex-shrink: 0;
+    font-size: 1.2em;
+    color: #888;
+    user-select: none;
+    padding: 4px;
 }
 
 .link-row .favicon {
