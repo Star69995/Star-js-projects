@@ -1,0 +1,456 @@
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+
+:root {
+    --primary-color: #5e2c8a;
+    --nav-height: 60px;
+    --strip-color: rgb(237, 216, 255)
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Varela Round";
+    scroll-margin-top: 90px;
+    scroll-behavior: smooth;
+}
+
+
+html,
+body {
+    width: 100%;
+    background-color: rgb(243, 240, 250);
+
+}
+
+.stars {
+
+    background-image: url('img/Star_Dim_Tile.png');
+    background-repeat: repeat;
+    background-position: center;
+    background-size: 200px;
+
+}
+
+.strip {
+    text-align: center;
+    background-color: rgb(237, 216, 255);
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 10px;
+    padding: 40px;
+    align-self: center;
+    margin: 10px;
+    width: 100%;
+    margin: 0;
+}
+
+section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 100vh;
+
+}
+
+p {
+    margin: 20px;
+}
+
+
+#about img {
+    border-radius: 50%;
+    width: 150px;
+    transition: all 0.3s ease-in-out;
+}
+
+#about img:hover {
+    scale: 1.10;
+}
+
+
+input,
+select {
+    margin-bottom: 10px;
+    font-family: "Varela Round";
+    border-radius: 5px;
+    padding: 5px;
+
+}
+
+.button {
+    display: inline-block;
+}
+
+button,
+.button {
+
+    color: rgb(255, 255, 255);
+    background-color: rgb(90, 0, 194);
+    font-family: "Varela Round";
+    border-radius: 5px;
+    padding: 10px;
+
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 9px #999999;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+button:hover,
+.button:hover {
+    background-color: rgb(80, 36, 102)
+}
+
+button:active {
+    background-color: rgb(80, 36, 102);
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+}
+
+h2,
+h3,
+h1 {
+    color: rgb(35, 6, 139);
+    padding-left: 100px;
+    padding-right: 100px;
+    margin: 20px;
+}
+
+h1{
+    font-size: 3em;
+}
+
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+
+#projects-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    padding: 50px;
+    padding-bottom: 40px;
+    border-radius: 50px;
+    text-align: center;
+    background-color: rgb(237, 216, 255);
+    box-shadow: rgba(0, 0, 0, 0.3) 10px 10px 10px;
+    align-self: center;
+    margin: 20px;
+}
+.button{
+    margin: 20px;
+}
+
+.project {
+    position: relative;
+}
+
+/* Edit-mode entry point at the bottom of the page */
+.edit-entry {
+    padding: 20px;
+    text-align: center;
+}
+
+#open-editor-btn {
+    background-color: rgb(35, 6, 139);
+    font-size: 0.9em;
+    padding: 10px 25px;
+}
+
+/* Overlay + panel for managing links */
+.editor-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 5, 40, 0.55);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 1000;
+    padding: 0;
+}
+
+.editor-overlay[hidden] {
+    display: none;
+}
+
+.editor-panel {
+    background: rgb(250, 247, 255);
+    width: 100%;
+    max-width: 480px;
+    max-height: 92vh;
+    overflow-y: auto;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+@media (min-width: 700px) {
+    .editor-overlay {
+        align-items: center;
+    }
+
+    .editor-panel {
+        border-radius: 20px;
+        max-height: 85vh;
+    }
+}
+
+.editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.editor-header h2 {
+    padding: 0;
+    margin: 0;
+    font-size: 1.4em;
+}
+
+#close-editor-btn {
+    background: transparent;
+    color: rgb(35, 6, 139);
+    box-shadow: none;
+    padding: 5px 12px;
+    font-size: 1.3em;
+    line-height: 1;
+}
+
+#close-editor-btn:hover {
+    background: rgba(35, 6, 139, 0.1);
+}
+
+.editor-status {
+    font-size: 0.85em;
+    min-height: 1.2em;
+    text-align: center;
+    color: rgb(35, 6, 139);
+}
+
+.editor-status.error {
+    color: rgb(170, 20, 20);
+}
+
+.password-gate {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+}
+
+.password-gate input {
+    width: 100%;
+    padding: 10px;
+    font-size: 1em;
+    text-align: center;
+}
+
+.links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.link-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.link-row .favicon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background: rgb(237, 216, 255);
+    object-fit: cover;
+}
+
+.link-row .link-fields {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.link-row input {
+    margin-bottom: 0;
+    width: 100%;
+    font-size: 0.95em;
+    padding: 6px 8px;
+    border: 1px solid rgb(210, 195, 230);
+}
+
+.link-row .name-input {
+    font-weight: bold;
+}
+
+.link-row .url-input {
+    font-size: 0.8em;
+    color: #555;
+}
+
+.row-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.row-actions button {
+    padding: 4px 8px;
+    font-size: 0.75em;
+    box-shadow: none;
+    border-radius: 8px;
+    min-width: 34px;
+}
+
+.row-actions .move-row {
+    display: flex;
+    gap: 4px;
+}
+
+.row-actions .delete-btn {
+    background-color: rgb(170, 20, 20);
+}
+
+.row-actions .delete-btn:hover {
+    background-color: rgb(130, 10, 10);
+}
+
+.add-link-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px dashed rgb(200, 180, 225);
+    padding-top: 14px;
+}
+
+.add-link-form h3 {
+    padding: 0;
+    margin: 0;
+    font-size: 1.05em;
+    text-align: center;
+}
+
+.add-link-form input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 0;
+}
+
+.add-link-form .add-row {
+    display: flex;
+    gap: 8px;
+}
+
+.add-link-form .add-row input {
+    flex: 1;
+}
+
+.add-link-form .preview-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+}
+
+.add-link-form .preview-row img {
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+}
+
+.add-link-form .preview-row span {
+    font-size: 0.85em;
+    color: #444;
+}
+
+.editor-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.editor-footer .save-btn {
+    background-color: rgb(35, 6, 139);
+}
+
+@media (max-width: 1800px) {}
+
+@media (min-width: 1800px) {
+    .projects {
+        margin-left: calc((100vw - (400px * 4)) / 2);
+        margin-right: calc((100vw - (400px * 4)) / 2);
+    }
+
+}
+
+
+@media (max-width: 1200px) {
+
+    h2,
+    h3,
+    h1 {
+        color: rgb(35, 6, 139);
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+}
+
+/* For small screens like mobile devices */
+@media (max-width: 600px) {
+    :root {
+
+        --nav-height: auto;
+    }
+
+    * {
+        scroll-margin-top: 200px;
+    }
+}
+
+/* Extra-small screens (350px target) */
+@media (max-width: 400px) {
+    #projects-container {
+        padding: 20px 10px;
+        border-radius: 25px;
+    }
+
+    .button {
+        margin: 8px;
+        padding: 10px 18px;
+    }
+
+    h1 {
+        font-size: 1.9em;
+    }
+
+    .editor-panel {
+        padding: 14px;
+    }
+
+    .add-link-form .add-row {
+        flex-direction: column;
+    }
+}

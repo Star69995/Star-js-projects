@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>הפרויקטים</title>
-    
+    <meta http-equiv="refresh" content="0; url=https://star-projects-home.star69995.workers.dev/">
+
     <!-- PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -35,24 +36,7 @@
 <body>
     <section class="strip">
         <h1>הפרויקטים</h1>
-        <div id="projects-container" class="stars">
-        </div>
+        <p>העמוד עבר לכתובת חדשה. <a href="https://star-projects-home.star69995.workers.dev/">לחצו כאן אם לא הועברתם אוטומטית</a>.</p>
     </section>
-
-    <script src="script.js"></script>
-    <script>
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful');
-                    })
-                    .catch(err => {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
-            });
-        }
-    </script>
 </body>
 </html>
