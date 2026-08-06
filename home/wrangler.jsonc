@@ -12,7 +12,8 @@
 	"kv_namespaces": [
 		{
 			"binding": "LINKS",
-			"id": "1bf3f24a04dd4a86a7aa1c6293786279"
+			"id": "1bf3f24a04dd4a86a7aa1c6293786279",
+			"remote": true
 		}
 	],
 	"observability": {
