@@ -19,8 +19,16 @@
 html,
 body {
     width: 100%;
+    overflow-x: hidden;
     background-color: rgb(243, 240, 250);
 
+}
+
+button,
+.button,
+a {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .stars {
@@ -50,6 +58,7 @@ section {
     flex-direction: column;
     gap: 20px;
     min-height: 100vh;
+    min-height: 100dvh;
 
 }
 
@@ -159,8 +168,8 @@ a {
 /* Edit-mode entry point: floating icon button, fixed to the corner */
 .fab {
     position: fixed;
-    top: 16px;
-    right: 16px;
+    top: max(16px, env(safe-area-inset-top));
+    right: max(16px, env(safe-area-inset-right));
     width: 48px;
     height: 48px;
     border-radius: 50%;
@@ -184,8 +193,8 @@ a {
 
 @media (max-width: 400px) {
     .fab {
-        top: 10px;
-        right: 10px;
+        top: max(10px, env(safe-area-inset-top));
+        right: max(10px, env(safe-area-inset-right));
         width: 42px;
         height: 42px;
     }
@@ -212,10 +221,13 @@ a {
     width: 100%;
     max-width: 480px;
     max-height: 92vh;
+    max-height: 92dvh;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     border-radius: 20px 20px 0 0;
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
     padding: 20px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -250,6 +262,8 @@ a {
     color: rgb(35, 6, 139);
     box-shadow: none;
     padding: 5px 12px;
+    min-width: 44px;
+    min-height: 44px;
     font-size: 1.3em;
     line-height: 1;
 }
@@ -319,7 +333,7 @@ a {
 .link-row input {
     margin-bottom: 0;
     width: 100%;
-    font-size: 0.95em;
+    font-size: 16px;
     padding: 6px 8px;
     border: 1px solid rgb(210, 195, 230);
 }
@@ -329,7 +343,6 @@ a {
 }
 
 .link-row .url-input {
-    font-size: 0.8em;
     color: #555;
 }
 
@@ -345,7 +358,8 @@ a {
     font-size: 0.75em;
     box-shadow: none;
     border-radius: 8px;
-    min-width: 34px;
+    min-width: 40px;
+    min-height: 40px;
 }
 
 .row-actions .move-row {
@@ -378,6 +392,7 @@ a {
 
 .add-link-form input {
     width: 100%;
+    font-size: 16px;
     padding: 8px;
     margin-bottom: 0;
 }
