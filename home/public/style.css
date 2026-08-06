@@ -156,16 +156,39 @@ a {
     position: relative;
 }
 
-/* Edit-mode entry point at the bottom of the page */
-.edit-entry {
-    padding: 20px;
-    text-align: center;
+/* Edit-mode entry point: floating icon button, fixed to the corner */
+.fab {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(35, 6, 139);
+    color: white;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    z-index: 900;
 }
 
-#open-editor-btn {
-    background-color: rgb(35, 6, 139);
-    font-size: 0.9em;
-    padding: 10px 25px;
+.fab:hover {
+    background-color: rgb(80, 36, 102);
+}
+
+.fab:active {
+    transform: translateY(2px);
+}
+
+@media (max-width: 400px) {
+    .fab {
+        top: 10px;
+        right: 10px;
+        width: 42px;
+        height: 42px;
+    }
 }
 
 /* Overlay + panel for managing links */
