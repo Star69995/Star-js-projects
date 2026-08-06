@@ -2,7 +2,7 @@
   "name": "star-projects-home",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --remote",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
