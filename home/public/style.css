@@ -146,7 +146,7 @@ a {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
     padding: 50px;
     padding-bottom: 40px;
@@ -161,8 +161,58 @@ a {
     margin: 20px;
 }
 
-.project {
-    position: relative;
+.project-card {
+    display: flex;
+    flex-direction: column;
+    width: 210px;
+    margin: 12px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 3px 10px rgba(35, 6, 139, 0.18);
+    text-decoration: none;
+    color: black;
+    transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(35, 6, 139, 0.28);
+}
+
+.project-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top;
+    background-color: rgb(237, 216, 255);
+    display: block;
+    border-bottom: 1px solid rgb(230, 220, 245);
+}
+
+.project-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+}
+
+.project-favicon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background: rgb(237, 216, 255);
+    object-fit: cover;
+}
+
+.project-name {
+    font-weight: bold;
+    font-size: 0.95em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
 }
 
 /* Edit-mode entry point: floating icon button, fixed to the corner */
@@ -496,6 +546,11 @@ a {
     .button {
         margin: 8px;
         padding: 10px 18px;
+    }
+
+    .project-card {
+        width: 140px;
+        margin: 8px;
     }
 
     h1 {

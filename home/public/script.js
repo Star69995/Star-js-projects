@@ -20,10 +20,37 @@ let links = [];
 let editingPassword = sessionStorage.getItem('edit-password') || '';
 let dragSrcIndex = null;
 
-function faviconFor(url) {
+function faviconCandidates(url) {
     try {
         const hostname = new URL(url).hostname;
-        return `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(hostname)}`;
+        return [
+            `https://icons.duckduckgo.com/ip3/${encodeURIComponent(hostname)}.ico`,
+            `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(hostname)}`,
+        ];
+    } catch {
+        return [];
+    }
+}
+
+// Tries each favicon source in order, falling back to the next one on load failure.
+function setFavicon(imgEl, url) {
+    const candidates = faviconCandidates(url);
+    let i = 0;
+    const tryNext = () => {
+        if (i >= candidates.length) {
+            imgEl.removeEventListener('error', tryNext);
+            return;
+        }
+        imgEl.src = candidates[i++];
+    };
+    imgEl.addEventListener('error', tryNext);
+    tryNext();
+}
+
+function thumbnailFor(url) {
+    try {
+        new URL(url);
+        return `https://s.wordpress.com/mshots/v1/${encodeURIComponent(url)}?w=400&h=250`;
     } catch {
         return '';
     }
@@ -32,10 +59,34 @@ function faviconFor(url) {
 function renderProjects() {
     container.innerHTML = '';
     links.forEach(project => {
-        const projectDiv = document.createElement('div');
-        projectDiv.className = 'project';
-        projectDiv.innerHTML = `<a href="${escapeAttr(project.url)}" class="button" target="_blank" rel="noopener noreferrer">${escapeHtml(project.name)}</a>`;
-        container.appendChild(projectDiv);
+        const card = document.createElement('a');
+        card.className = 'project-card';
+        card.href = project.url;
+        card.target = '_blank';
+        card.rel = 'noopener noreferrer';
+
+        const thumb = document.createElement('img');
+        thumb.className = 'project-thumb';
+        thumb.src = thumbnailFor(project.url);
+        thumb.alt = '';
+        thumb.loading = 'lazy';
+        thumb.addEventListener('error', () => { thumb.style.display = 'none'; }, { once: true });
+
+        const info = document.createElement('div');
+        info.className = 'project-info';
+
+        const favicon = document.createElement('img');
+        favicon.className = 'project-favicon';
+        favicon.alt = '';
+        setFavicon(favicon, project.url);
+
+        const name = document.createElement('span');
+        name.className = 'project-name';
+        name.textContent = project.name;
+
+        info.append(favicon, name);
+        card.append(thumb, info);
+        container.appendChild(card);
     });
 }
 
@@ -72,7 +123,7 @@ function renderLinksList() {
         row.draggable = true;
         row.innerHTML = `
             <span class="drag-handle" title="גרירה לשינוי סדר">&#9776;</span>
-            <img class="favicon" src="${escapeAttr(faviconFor(link.url))}" alt="">
+            <img class="favicon" alt="">
             <div class="link-fields">
                 <input class="name-input" type="text" value="${escapeAttr(link.name)}" placeholder="שם">
                 <input class="url-input" type="url" value="${escapeAttr(link.url)}" placeholder="כתובת">
@@ -85,6 +136,8 @@ function renderLinksList() {
                 <button type="button" class="delete-btn">מחיקה</button>
             </div>
         `;
+
+        setFavicon(row.querySelector('.favicon'), link.url);
 
         row.addEventListener('dragstart', e => {
             dragSrcIndex = index;
@@ -117,7 +170,7 @@ function renderLinksList() {
         });
         row.querySelector('.url-input').addEventListener('input', e => {
             links[index].url = e.target.value;
-            row.querySelector('.favicon').src = faviconFor(e.target.value);
+            setFavicon(row.querySelector('.favicon'), e.target.value);
         });
         row.querySelector('.move-up').addEventListener('click', () => {
             if (index === 0) return;
