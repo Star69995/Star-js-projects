@@ -200,15 +200,6 @@ a {
     display: block;
 }
 
-/* mshots (the fallback for projects without their own og:image) pads generated screenshots
-   with blank space on the left edge (never the right); zoom in and anchor to the top-right
-   so .project-thumb-wrap's overflow:hidden clips the padding away. script.js only adds this
-   class when the thumbnail actually came from mshots, so a real og:image is never cropped. */
-.project-thumb.thumb-cropped {
-    transform: scale(1.22);
-    transform-origin: right top;
-}
-
 .project-info {
     display: flex;
     align-items: center;

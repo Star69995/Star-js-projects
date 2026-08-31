@@ -49,9 +49,7 @@ function setFavicon(imgEl, url) {
     tryNext();
 }
 
-// Loads the thumbnail async (the worker returns JSON, not the image directly) so we can
-// tell whether it's the site's own og:image or the mshots fallback - only mshots needs the
-// crop-compensation class, since it's the one that pads RTL screenshots with blank space.
+// Loads the thumbnail async (the worker returns JSON, not the image directly).
 function loadThumbnail(imgEl, url) {
     try {
         new URL(url);
@@ -63,7 +61,6 @@ function loadThumbnail(imgEl, url) {
         .then(data => {
             if (!data) return;
             imgEl.src = data.url;
-            imgEl.classList.toggle('thumb-cropped', data.source === 'mshots');
         })
         .catch(() => {});
 }

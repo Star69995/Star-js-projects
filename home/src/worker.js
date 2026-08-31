@@ -423,9 +423,6 @@ function extractIconHref(html, baseUrl) {
 // Public, read-only thumbnail lookup used by the public projects page: it prefers the
 // target site's own <meta property="og:image"> (what the site itself wants shown when
 // shared/linked), and falls back to an mshots-generated screenshot when absent.
-// Returns JSON (not a redirect) so the client knows whether the image came from the
-// site's own og:image or the mshots fallback - mshots pads screenshots of RTL sites with
-// blank space on one edge, so the client only applies its crop-compensation for that case.
 async function handleThumbnail(request) {
 	const targetUrl = new URL(request.url).searchParams.get("url") || "";
 	let parsed;
@@ -455,7 +452,7 @@ async function handleThumbnail(request) {
 	}
 
 	const url = ogImage ?? `https://s.wordpress.com/mshots/v1/${encodeURIComponent(parsed.toString())}?w=400&h=250`;
-	return json({ url, source: ogImage ? "og-image" : "mshots", description }, 200, {
+	return json({ url, description }, 200, {
 		...corsHeaders(),
 		"cache-control": "public, max-age=3600",
 	});
