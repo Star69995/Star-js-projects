@@ -1,5 +1,163 @@
 const LINKS_KEY = "links";
 
+// Cross-origin readers of the public links list (e.g. the star-site static site).
+// TEMP for local testing against http://127.0.0.1:8788 - revert to "https://star69995.github.io" before deploying.
+const ALLOWED_ORIGIN = "*";
+const LINKS_CACHE_CONTROL = "public, max-age=86400"; // 1 day - updates are rare, and saves purge this explicitly.
+
+function corsHeaders() {
+	return { "access-control-allow-origin": ALLOWED_ORIGIN, "vary": "origin" };
+}
+
+function linksCacheKey(request) {
+	return new Request(new URL("/api/links", request.url), { method: "GET" });
+}
+
+const PROJECTS_KEY = "projects";
+const PROJECTS_CACHE_CONTROL = "public, max-age=86400"; // 1 day - updates are rare, and saves purge this explicitly.
+
+function projectsCacheKey(request) {
+	return new Request(new URL("/api/projects", request.url), { method: "GET" });
+}
+
+// Mirrors star-site/projects.json as of the day this endpoint was added, so a KV miss
+// still serves the same data star-site already ships locally - not an arbitrary fallback.
+const DEFAULT_PROJECTS = {
+	"css-projects": [
+		{
+			title: "מצב הרוח כנר",
+			description: "גלריית תמונות רספונסיבית עם אפקטים ייחודיים וכיתוב משעשע, המאפשרת חווית צפייה קלילה ומהנה. נבנה בעזרת HTML ו-CSS, מתאים לכל סוגי המסכים.",
+			image: "img/candle.webp",
+			path: "css-projects/candle/",
+			zip: "css-projects/candle.zip",
+			languages: ["HTML", "CSS"],
+		},
+		{
+			title: "גופנים מגניבים",
+			description: "התנסו במבחר גופנים ייחודיים - חלקם בעיצוב אישי וחלקם מ-Google Fonts. פרויקט המדגיש את עוצמת הטיפוגרפיה באמצעות HTML ו-CSS בלבד. מותאם לתצוגה במכשירים ניידים.",
+			image: "img/fonts.webp",
+			path: "css-projects/typography/",
+			zip: "css-projects/typography.zip",
+			languages: ["HTML", "CSS"],
+		},
+		{
+			title: "קפה",
+			description: "דף השארת פרטים ידידותי למשתמש, שנבנה ב-HTML ו-CSS עם יישום עיצוב מקבצי Adobe XD. מותאם לתצוגה בנייד ובמחשב.",
+			image: "img/coffee.webp",
+			path: "css-projects/Coffee/",
+			zip: "css-projects/Coffee.zip",
+			languages: ["HTML", "CSS", "Adobe XD"],
+		},
+		{
+			title: "גריד",
+			description: "עמוד גריד מודרני לאיסוף פרטים עם שדות נוספים, כולל שם, אימייל והודעת טקסט. נבנה בעזרת HTML ו-CSS עם יישום של עיצוב שהוכן מראש ב-Adobe XD. מותאם לניידים ולמחשבים.",
+			image: "img/grid.webp",
+			path: "css-projects/gallery/",
+			zip: "css-projects/gallery.zip",
+			languages: ["HTML", "CSS", "Adobe XD"],
+		},
+		{
+			title: "הדרך קדימה",
+			description: "עמוד מרשים להשארת פרטים, המותאם למגוון מסכים. נבנה ב-HTML ו-CSS עם יישום של עיצוב מקובץ Adobe XD קיים.",
+			image: "img/forward.webp",
+			path: "css-projects/forward/",
+			zip: "css-projects/forward.zip",
+			languages: ["HTML", "CSS", "Adobe XD"],
+		},
+		{
+			title: "דף נחיתה צהוב",
+			description: "דף נחיתה בולט עם רקע צהוב ועיצוב נוח לשימוש. נבנה ב-HTML ו-CSS בהתבסס על עיצוב שהוכן מראש ב-Adobe XD, ומותאם לנייד ולמחשב.",
+			image: "img/yellow.webp",
+			path: "css-projects/icons page/",
+			zip: "css-projects/icons page.zip",
+			languages: ["HTML", "CSS", "Adobe XD"],
+		},
+	],
+	"js-projects": [
+		{
+			title: "קריפטוגרמה",
+			description: "משחק קריפטוגרמה אינטראקטיבי שבו השחקן מפענח משפטים מוסתרים באמצעות הצפנה. המשפטים נלקחים מוויקיציטוט ומיובאים אוטומטית לקובץ JSON בעזרת קוד פייתון. המשחק מותאם לשימוש במכשירים ניידים ובמחשבים, ונבנה בטכנולוגיות HTML, CSS ו-JavaScript.",
+			image: "img/cryptogram.webp",
+			path: "js-projects/cryptogram/",
+			zip: "js-projects/cryptogram.zip",
+			languages: ["HTML", "CSS", "JavaScript", "Python"],
+		},
+		{
+			title: "תחזית מזג אוויר",
+			description: "אפליקציה אינטראקטיבית לתחזית מזג אוויר, כולל תחזית שעתית ויומית, בשילוב המלצות לבוש. נבנה באמצעות HTML, CSS ו-JavaScript עם שימוש ב-OpenWeather API.",
+			image: "img/weather.webp",
+			path: "js-projects/weather/",
+			zip: "js-projects/weather.zip",
+			languages: ["HTML", "CSS", "JavaScript", "OpenWeather API"],
+		},
+		{
+			title: "מנהל משימות",
+			description: "אפליקציה אינטראקטיבית לניהול רשימות ומשימות, עם שמירה ב-localStorage. מאפשרת הוספה, עריכה ומחיקה של משימות בצורה נוחה.",
+			image: "img/task_manager.webp",
+			path: "js-projects/task_manager/",
+			zip: "js-projects/task_manager.zip",
+			languages: ["HTML", "CSS", "JavaScript"],
+		},
+		{
+			title: "משחק מתמטי",
+			description: "משחק חידות מתמטיות לאימון המוח. כולל שלבים שונים ומשימות משתנות. נבנה ב-HTML, CSS ו-JavaScript.",
+			image: "img/mathGame.webp",
+			path: "js-projects/mathGame/",
+			zip: "js-projects/mathGame.zip",
+			languages: ["HTML", "CSS", "JavaScript"],
+		},
+		{
+			title: "מחשבון עץ",
+			description: "מחשבון עץ המאפשר לבצע חישובים בתחום חיתוך עץ. מיועד גם למכשירים ניידים וגם למחשבים, נבנה ב-HTML, CSS ו-JavaScript.",
+			image: "img/wood-calc.webp",
+			path: "js-projects/wood-calc/",
+			zip: "js-projects/wood-calc.zip",
+			languages: ["HTML", "CSS", "JavaScript"],
+		},
+		{
+			title: "שעון עצר",
+			description: "פרויקט שעון עצר מותאם למכשירים ניידים ובמחשבים, נבנה ב-HTML, CSS ו-JavaScript.",
+			image: "img/timer.webp",
+			path: "js-projects/timer/",
+			zip: "js-projects/timer.zip",
+			languages: ["HTML", "CSS", "JavaScript"],
+		},
+		{
+			title: "בונה דפים",
+			description: "אפליקציה המאפשרת יצירת דפי אינטרנט בצורה אינטראקטיבית. המשתמש יכול לעצב וליצור דפים בקלות. הנתונים נשמרים בזיכרון המקומי (localStorage) להמשך עבודה. נבנה ב-HTML, CSS ו-JavaScript.",
+			image: "img/pageBuilder.webp",
+			path: "js-projects/pageBuilder/",
+			zip: "js-projects/pageBuilder.zip",
+			languages: ["HTML", "CSS", "JavaScript"],
+		},
+	],
+};
+
+function sanitizeProjects(data) {
+	if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+	const result = {};
+	for (const [category, list] of Object.entries(data)) {
+		if (!Array.isArray(list)) return null;
+		const cleanedList = [];
+		for (const item of list) {
+			if (!item || typeof item !== "object") return null;
+			const title = String(item.title ?? "").trim().slice(0, 200);
+			const path = String(item.path ?? "").trim().slice(0, 300);
+			if (!title || !path) return null;
+			const description = String(item.description ?? "").trim().slice(0, 1000);
+			const image = String(item.image ?? "").trim().slice(0, 300);
+			const languages = Array.isArray(item.languages)
+				? item.languages.map(l => String(l).trim().slice(0, 50)).filter(Boolean)
+				: [];
+			const cleaned = { title, description, image, path, languages };
+			if (item.zip != null) cleaned.zip = String(item.zip).trim().slice(0, 300);
+			cleanedList.push(cleaned);
+		}
+		result[category] = cleanedList;
+	}
+	return result;
+}
+
 const DEFAULT_LINKS = [
 	{ id: "1", name: "האתר של סטאר", url: "https://star69995.github.io/star-site/" },
 	{ id: "2", name: "צעד קדימה", url: "https://beyond-borders-23adb.web.app/" },
@@ -13,10 +171,10 @@ const DEFAULT_LINKS = [
 	{ id: "10", name: "מחשבון קרשים", url: "https://star69995.github.io/star-site/js-projects/wood-calc/" },
 ];
 
-function json(data, status = 200) {
+function json(data, status = 200, extraHeaders = {}) {
 	return new Response(JSON.stringify(data), {
 		status,
-		headers: { "content-type": "application/json; charset=utf-8" },
+		headers: { "content-type": "application/json; charset=utf-8", ...extraHeaders },
 	});
 }
 
@@ -40,17 +198,28 @@ function sanitizeLinks(list) {
 			return null;
 		}
 		const id = String(item.id ?? crypto.randomUUID()).slice(0, 100);
-		cleaned.push({ id, name, url });
+		const description = String(item.description ?? "").trim().slice(0, 300);
+		cleaned.push({ id, name, url, description });
 	}
 	return cleaned;
 }
 
-async function handleGetLinks(env) {
+async function handleGetLinks(request, env, ctx) {
+	const cache = caches.default;
+	const cacheKey = linksCacheKey(request);
+	const cached = await cache.match(cacheKey);
+	if (cached) return cached;
+
 	const stored = await env.LINKS.get(LINKS_KEY, "json");
-	return json(stored ?? DEFAULT_LINKS);
+	const response = json(stored ?? DEFAULT_LINKS, 200, {
+		...corsHeaders(),
+		"cache-control": LINKS_CACHE_CONTROL,
+	});
+	ctx.waitUntil(cache.put(cacheKey, response.clone()));
+	return response;
 }
 
-async function handleSaveLinks(request, env) {
+async function handleSaveLinks(request, env, ctx) {
 	if (!isAuthorized(request, env)) return json({ error: "unauthorized" }, 401);
 	let body;
 	try {
@@ -61,7 +230,38 @@ async function handleSaveLinks(request, env) {
 	const cleaned = sanitizeLinks(body.links);
 	if (!cleaned) return json({ error: "invalid links" }, 400);
 	await env.LINKS.put(LINKS_KEY, JSON.stringify(cleaned));
+	ctx.waitUntil(caches.default.delete(linksCacheKey(request)));
 	return json({ ok: true, links: cleaned });
+}
+
+async function handleGetProjects(request, env, ctx) {
+	const cache = caches.default;
+	const cacheKey = projectsCacheKey(request);
+	const cached = await cache.match(cacheKey);
+	if (cached) return cached;
+
+	const stored = await env.LINKS.get(PROJECTS_KEY, "json");
+	const response = json(stored ?? DEFAULT_PROJECTS, 200, {
+		...corsHeaders(),
+		"cache-control": PROJECTS_CACHE_CONTROL,
+	});
+	ctx.waitUntil(cache.put(cacheKey, response.clone()));
+	return response;
+}
+
+async function handleSaveProjects(request, env, ctx) {
+	if (!isAuthorized(request, env)) return json({ error: "unauthorized" }, 401);
+	let body;
+	try {
+		body = await request.json();
+	} catch {
+		return json({ error: "invalid json" }, 400);
+	}
+	const cleaned = sanitizeProjects(body);
+	if (!cleaned) return json({ error: "invalid projects" }, 400);
+	await env.LINKS.put(PROJECTS_KEY, JSON.stringify(cleaned));
+	ctx.waitUntil(caches.default.delete(projectsCacheKey(request)));
+	return json({ ok: true, projects: cleaned });
 }
 
 async function handleCheckPassword(request, env) {
@@ -80,6 +280,7 @@ async function handleMeta(request, env) {
 	}
 
 	let title = "";
+	let icon = null;
 	try {
 		const resp = await fetch(parsed.toString(), {
 			redirect: "follow",
@@ -88,9 +289,10 @@ async function handleMeta(request, env) {
 		});
 		const contentType = resp.headers.get("content-type") || "";
 		if (contentType.includes("text/html")) {
-			const html = await resp.text();
+			const html = await readBounded(resp, 100_000);
 			const match = html.match(/<title[^>]*>([^<]*)<\/title>/i);
 			if (match) title = decodeHtmlEntities(match[1].trim());
+			icon = extractIconHref(html, resp.url);
 		}
 	} catch {
 		// ignore fetch failures, fall back to hostname
@@ -98,8 +300,222 @@ async function handleMeta(request, env) {
 
 	if (!title) title = parsed.hostname.replace(/^www\./, "");
 
-	const favicon = `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(parsed.hostname)}`;
+	const favicon = icon ?? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(parsed.hostname)}.ico`;
 	return json({ title, favicon });
+}
+
+// Public, read-only favicon lookup used by the public projects page: it parses the
+// target site's own <link rel="icon"> so we show its real logo instead of a guess.
+async function handleFavicon(request) {
+	const targetUrl = new URL(request.url).searchParams.get("url") || "";
+	let parsed;
+	try {
+		parsed = new URL(targetUrl);
+		if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("bad protocol");
+	} catch {
+		return new Response(null, { status: 400 });
+	}
+
+	let iconUrl = null;
+	try {
+		const resp = await fetch(parsed.toString(), {
+			redirect: "follow",
+			headers: { "user-agent": "Mozilla/5.0 (compatible; LinkPreviewBot/1.0)" },
+			cf: { cacheTtl: 86400, cacheEverything: true },
+		});
+		const contentType = resp.headers.get("content-type") || "";
+		if (contentType.includes("text/html")) {
+			const html = await readBounded(resp, 100_000);
+			iconUrl = extractIconHref(html, resp.url);
+		}
+	} catch {
+		// ignore fetch failures, respond 404 below so the client falls back
+	}
+
+	if (!iconUrl) return new Response(null, { status: 404 });
+
+	// data: URIs (e.g. an inline SVG favicon) can't be used as a redirect target -
+	// browsers block that as an unsafe redirect - so serve the decoded bytes directly.
+	if (iconUrl.startsWith("data:")) {
+		const dataResponse = dataUriToResponse(iconUrl);
+		return dataResponse ?? new Response(null, { status: 404 });
+	}
+
+	if (!iconUrl.startsWith("http:") && !iconUrl.startsWith("https:")) {
+		return new Response(null, { status: 404 });
+	}
+
+	return new Response(null, {
+		status: 302,
+		headers: { location: iconUrl, "cache-control": "public, max-age=3600" },
+	});
+}
+
+// Decodes a data: URI (base64 or percent-encoded) into a Response with the right content-type.
+function dataUriToResponse(dataUri) {
+	const match = dataUri.match(/^data:([^;,]*)(;base64)?,([\s\S]*)$/);
+	if (!match) return null;
+	const mime = match[1] || "text/plain";
+	const isBase64 = Boolean(match[2]);
+	try {
+		const bytes = isBase64
+			? Uint8Array.from(atob(match[3]), c => c.charCodeAt(0))
+			: new TextEncoder().encode(decodeURIComponent(match[3]));
+		return new Response(bytes, {
+			status: 200,
+			headers: { "content-type": mime, "cache-control": "public, max-age=3600" },
+		});
+	} catch {
+		return null;
+	}
+}
+
+// Reads at most maxBytes of a response body as text - keeps a hostile/huge
+// page from making the worker read an unbounded amount of HTML.
+async function readBounded(resp, maxBytes) {
+	const reader = resp.body.getReader();
+	const chunks = [];
+	let total = 0;
+	while (total < maxBytes) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		chunks.push(value);
+		total += value.length;
+	}
+	try {
+		await reader.cancel();
+	} catch {
+		// ignore
+	}
+	const buffer = new Uint8Array(total);
+	let offset = 0;
+	for (const chunk of chunks) {
+		buffer.set(chunk, offset);
+		offset += chunk.length;
+	}
+	return new TextDecoder().decode(buffer);
+}
+
+// Finds the href of the site's own <link rel="icon"|"shortcut icon"|"apple-touch-icon">,
+// resolved to an absolute URL. Prefers a plain "icon"/"shortcut icon" match if present.
+function extractIconHref(html, baseUrl) {
+	const linkTagRegex = /<link\b[^>]*>/gi;
+	let bestHref = null;
+	let match;
+	while ((match = linkTagRegex.exec(html))) {
+		const tag = match[0];
+		const relMatch = tag.match(/rel\s*=\s*(["'])((?:(?!\1)[\s\S])*)\1/i);
+		if (!relMatch || !relMatch[2].toLowerCase().includes("icon")) continue;
+		const hrefMatch = tag.match(/href\s*=\s*(["'])((?:(?!\1)[\s\S])*)\1/i);
+		if (!hrefMatch) continue;
+		bestHref = hrefMatch[2];
+		const relValue = relMatch[2].trim().toLowerCase();
+		if (relValue === "icon" || relValue === "shortcut icon") break;
+	}
+	if (!bestHref) return null;
+	try {
+		return new URL(bestHref, baseUrl).toString();
+	} catch {
+		return null;
+	}
+}
+
+// Public, read-only thumbnail lookup used by the public projects page: it prefers the
+// target site's own <meta property="og:image"> (what the site itself wants shown when
+// shared/linked), and falls back to an mshots-generated screenshot when absent.
+// Returns JSON (not a redirect) so the client knows whether the image came from the
+// site's own og:image or the mshots fallback - mshots pads screenshots of RTL sites with
+// blank space on one edge, so the client only applies its crop-compensation for that case.
+async function handleThumbnail(request) {
+	const targetUrl = new URL(request.url).searchParams.get("url") || "";
+	let parsed;
+	try {
+		parsed = new URL(targetUrl);
+		if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("bad protocol");
+	} catch {
+		return json({ error: "invalid url" }, 400);
+	}
+
+	let ogImage = null;
+	let description = null;
+	try {
+		const resp = await fetch(parsed.toString(), {
+			redirect: "follow",
+			headers: { "user-agent": "Mozilla/5.0 (compatible; LinkPreviewBot/1.0)" },
+			cf: { cacheTtl: 3600, cacheEverything: true },
+		});
+		const contentType = resp.headers.get("content-type") || "";
+		if (contentType.includes("text/html")) {
+			const html = await readBounded(resp, 100_000);
+			ogImage = extractOgImage(html, resp.url);
+			description = extractMetaDescription(html);
+		}
+	} catch {
+		// ignore fetch failures, fall back to mshots below
+	}
+
+	const url = ogImage ?? `https://s.wordpress.com/mshots/v1/${encodeURIComponent(parsed.toString())}?w=400&h=250`;
+	return json({ url, source: ogImage ? "og-image" : "mshots", description }, 200, {
+		...corsHeaders(),
+		"cache-control": "public, max-age=3600",
+	});
+}
+
+// Finds the target site's own <meta property="og:description"> (or the plain
+// <meta name="description"> as a fallback), so cards can show a description without
+// anyone having to type one in manually.
+function extractMetaDescription(html) {
+	const metaTagRegex = /<meta\b[^>]*>/gi;
+	let ogDescription = null;
+	let plainDescription = null;
+	let match;
+	while ((match = metaTagRegex.exec(html))) {
+		const tag = match[0];
+		const propMatch = tag.match(/(?:property|name)\s*=\s*(["'])((?:(?!\1)[\s\S])*)\1/i);
+		const contentMatch = tag.match(/content\s*=\s*(["'])((?:(?!\1)[\s\S])*)\1/i);
+		if (!propMatch || !contentMatch) continue;
+		const prop = propMatch[2].trim().toLowerCase();
+		if (prop === "og:description") {
+			ogDescription = contentMatch[2];
+			break;
+		}
+		if (!plainDescription && prop === "description") {
+			plainDescription = contentMatch[2];
+		}
+	}
+	const chosen = ogDescription ?? plainDescription;
+	if (!chosen) return null;
+	return decodeHtmlEntities(chosen.trim()).slice(0, 300);
+}
+
+// Finds the resolved <meta property="og:image"> (or twitter:image as a fallback) content,
+// resolved to an absolute URL. Attribute order (property/content) is not assumed.
+function extractOgImage(html, baseUrl) {
+	const metaTagRegex = /<meta\b[^>]*>/gi;
+	let ogImage = null;
+	let twitterImage = null;
+	let match;
+	while ((match = metaTagRegex.exec(html))) {
+		const tag = match[0];
+		const propMatch = tag.match(/(?:property|name)\s*=\s*(["'])((?:(?!\1)[\s\S])*)\1/i);
+		const contentMatch = tag.match(/content\s*=\s*(["'])((?:(?!\1)[\s\S])*)\1/i);
+		if (!propMatch || !contentMatch) continue;
+		const prop = propMatch[2].trim().toLowerCase();
+		if (prop === "og:image" || prop === "og:image:url") {
+			ogImage = contentMatch[2];
+			break;
+		}
+		if (!twitterImage && (prop === "twitter:image" || prop === "twitter:image:src")) {
+			twitterImage = contentMatch[2];
+		}
+	}
+	const chosen = ogImage ?? twitterImage;
+	if (!chosen) return null;
+	try {
+		return new URL(chosen, baseUrl).toString();
+	} catch {
+		return null;
+	}
 }
 
 function decodeHtmlEntities(str) {
@@ -113,12 +529,24 @@ function decodeHtmlEntities(str) {
 }
 
 export default {
-	async fetch(request, env) {
+	async fetch(request, env, ctx) {
 		const url = new URL(request.url);
 
 		if (url.pathname === "/api/links") {
-			if (request.method === "GET") return handleGetLinks(env);
-			if (request.method === "PUT") return handleSaveLinks(request, env);
+			if (request.method === "GET") return handleGetLinks(request, env, ctx);
+			if (request.method === "PUT") return handleSaveLinks(request, env, ctx);
+			if (request.method === "OPTIONS") {
+				return new Response(null, { status: 204, headers: { ...corsHeaders(), "access-control-allow-methods": "GET, PUT" } });
+			}
+			return json({ error: "method not allowed" }, 405);
+		}
+
+		if (url.pathname === "/api/projects") {
+			if (request.method === "GET") return handleGetProjects(request, env, ctx);
+			if (request.method === "PUT") return handleSaveProjects(request, env, ctx);
+			if (request.method === "OPTIONS") {
+				return new Response(null, { status: 204, headers: { ...corsHeaders(), "access-control-allow-methods": "GET, PUT" } });
+			}
 			return json({ error: "method not allowed" }, 405);
 		}
 
@@ -128,6 +556,14 @@ export default {
 
 		if (url.pathname === "/api/meta" && request.method === "GET") {
 			return handleMeta(request, env);
+		}
+
+		if (url.pathname === "/api/favicon" && request.method === "GET") {
+			return handleFavicon(request);
+		}
+
+		if (url.pathname === "/api/thumbnail" && request.method === "GET") {
+			return handleThumbnail(request);
 		}
 
 		return env.ASSETS.fetch(request);

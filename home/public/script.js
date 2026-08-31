@@ -12,6 +12,7 @@ const editorStatus = document.getElementById('editor-status');
 const addLinkForm = document.getElementById('add-link-form');
 const newUrlInput = document.getElementById('new-url');
 const newNameInput = document.getElementById('new-name');
+const newDescriptionInput = document.getElementById('new-description');
 const fetchMetaBtn = document.getElementById('fetch-meta-btn');
 const newPreview = document.getElementById('new-preview');
 const saveLinksBtn = document.getElementById('save-links-btn');
@@ -22,10 +23,11 @@ let dragSrcIndex = null;
 
 function faviconCandidates(url) {
     try {
-        const hostname = new URL(url).hostname;
+        const parsed = new URL(url);
         return [
-            `https://icons.duckduckgo.com/ip3/${encodeURIComponent(hostname)}.ico`,
-            `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(hostname)}`,
+            `${parsed.origin}/favicon.ico`,
+            `/api/favicon?url=${encodeURIComponent(parsed.href)}`,
+            `https://icons.duckduckgo.com/ip3/${encodeURIComponent(parsed.hostname)}.ico`,
         ];
     } catch {
         return [];
@@ -47,13 +49,23 @@ function setFavicon(imgEl, url) {
     tryNext();
 }
 
-function thumbnailFor(url) {
+// Loads the thumbnail async (the worker returns JSON, not the image directly) so we can
+// tell whether it's the site's own og:image or the mshots fallback - only mshots needs the
+// crop-compensation class, since it's the one that pads RTL screenshots with blank space.
+function loadThumbnail(imgEl, url) {
     try {
         new URL(url);
-        return `https://s.wordpress.com/mshots/v1/${encodeURIComponent(url)}?w=400&h=250`;
     } catch {
-        return '';
+        return;
     }
+    fetch(`/api/thumbnail?url=${encodeURIComponent(url)}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+            if (!data) return;
+            imgEl.src = data.url;
+            imgEl.classList.toggle('thumb-cropped', data.source === 'mshots');
+        })
+        .catch(() => {});
 }
 
 function renderProjects() {
@@ -65,12 +77,16 @@ function renderProjects() {
         card.target = '_blank';
         card.rel = 'noopener noreferrer';
 
+        const thumbWrap = document.createElement('div');
+        thumbWrap.className = 'project-thumb-wrap';
+
         const thumb = document.createElement('img');
         thumb.className = 'project-thumb';
-        thumb.src = thumbnailFor(project.url);
         thumb.alt = '';
         thumb.loading = 'lazy';
         thumb.addEventListener('error', () => { thumb.style.display = 'none'; }, { once: true });
+        loadThumbnail(thumb, project.url);
+        thumbWrap.appendChild(thumb);
 
         const info = document.createElement('div');
         info.className = 'project-info';
@@ -85,7 +101,7 @@ function renderProjects() {
         name.textContent = project.name;
 
         info.append(favicon, name);
-        card.append(thumb, info);
+        card.append(thumbWrap, info);
         container.appendChild(card);
     });
 }
@@ -127,6 +143,7 @@ function renderLinksList() {
             <div class="link-fields">
                 <input class="name-input" type="text" value="${escapeAttr(link.name)}" placeholder="שם">
                 <input class="url-input" type="url" value="${escapeAttr(link.url)}" placeholder="כתובת">
+                <textarea class="description-input" placeholder="תיאור (אופציונלי)" rows="2">${escapeHtml(link.description || '')}</textarea>
             </div>
             <div class="row-actions">
                 <div class="move-row">
@@ -172,6 +189,9 @@ function renderLinksList() {
             links[index].url = e.target.value;
             setFavicon(row.querySelector('.favicon'), e.target.value);
         });
+        row.querySelector('.description-input').addEventListener('input', e => {
+            links[index].description = e.target.value;
+        });
         row.querySelector('.move-up').addEventListener('click', () => {
             if (index === 0) return;
             [links[index - 1], links[index]] = [links[index], links[index - 1]];
@@ -214,6 +234,7 @@ function showEditorBody() {
     renderLinksList();
     newUrlInput.value = '';
     newNameInput.value = '';
+    newDescriptionInput.value = '';
     newPreview.innerHTML = '';
 }
 
@@ -318,10 +339,12 @@ addLinkForm.addEventListener('submit', e => {
     e.preventDefault();
     const url = newUrlInput.value.trim();
     const name = newNameInput.value.trim();
+    const description = newDescriptionInput.value.trim();
     if (!url || !name) return;
-    links.push({ id: crypto.randomUUID(), name, url });
+    links.push({ id: crypto.randomUUID(), name, url, description });
     newUrlInput.value = '';
     newNameInput.value = '';
+    newDescriptionInput.value = '';
     newPreview.innerHTML = '';
     renderLinksList();
     setStatus('הקישור נוסף לרשימה - לא לשכוח לשמור');
