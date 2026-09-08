@@ -79,12 +79,14 @@ p {
 
 
 input,
-select {
+select,
+textarea {
     margin-bottom: 10px;
     font-family: "Varela Round";
     border-radius: 5px;
     padding: 5px;
-
+    border: 1px solid rgb(210, 195, 230);
+    resize: vertical;
 }
 
 .button {
@@ -144,10 +146,8 @@ a {
 
 #projects-container {
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
     align-items: stretch;
-    justify-content: center;
     padding: 50px;
     padding-bottom: 40px;
     border-radius: 50px;
@@ -156,6 +156,24 @@ a {
     box-shadow: rgba(0, 0, 0, 0.3) 10px 10px 10px;
     align-self: center;
     margin: 20px;
+}
+
+.section-title {
+    padding: 0;
+    margin: 0 0 10px;
+    font-size: 1.4em;
+}
+
+.project-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.project-grid:not(:last-child) {
+    margin-bottom: 20px;
 }
 .button{
     margin: 20px;
@@ -205,6 +223,37 @@ a {
     align-items: center;
     gap: 10px;
     padding: 12px 14px;
+}
+
+.project-desc-toggle {
+    margin-inline-start: auto;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgb(237, 216, 255);
+    color: rgb(90, 0, 194);
+    box-shadow: none;
+    font-size: 0.9em;
+    line-height: 1;
+}
+
+.project-desc-toggle:hover,
+.project-desc-toggle.is-open {
+    background: rgb(90, 0, 194);
+    color: white;
+}
+
+.project-description {
+    text-align: right;
+    font-size: 0.85em;
+    color: #444;
+    padding: 0 14px 12px;
+    margin: -4px 0 0;
 }
 
 .project-favicon {
@@ -276,21 +325,20 @@ a {
     display: none;
 }
 
+/* Mobile: true full-screen editor. Fixed independently of the overlay's flex
+   centering so it can track the on-screen keyboard via --vv-top/--vv-height
+   (set from window.visualViewport in script.js) instead of drifting under it -
+   see the CLAUDE.md note on iOS Safari's visual-viewport keyboard behavior. */
 .editor-panel {
+    position: fixed;
+    inset: 0;
+    top: var(--vv-top, 0px);
+    height: var(--vv-height, 100dvh);
     background: rgb(250, 247, 255);
     width: 100%;
-    max-width: 480px;
-    max-height: 92vh;
-    max-height: 92dvh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 20px 20px 0 0;
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
-    padding: 20px;
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    overflow: hidden;
 }
 
 @media (min-width: 700px) {
@@ -299,9 +347,19 @@ a {
     }
 
     .editor-panel {
-        border-radius: 20px;
+        position: static;
+        width: 100%;
+        max-width: 480px;
         max-height: 85vh;
+        height: auto;
+        border-radius: 20px;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
     }
+}
+
+.editor-topbar {
+    flex-shrink: 0;
+    padding: 20px 20px 10px;
 }
 
 .editor-header {
@@ -350,6 +408,10 @@ a {
     text-align: center;
 }
 
+.password-gate[hidden] {
+    display: none;
+}
+
 .password-gate input {
     width: 100%;
     padding: 10px;
@@ -357,10 +419,135 @@ a {
     text-align: center;
 }
 
-.links-list {
+/* Scrolls independently between the sticky topbar and footer, so the close and
+   save buttons stay reachable while the field list scrolls underneath them. */
+.editor-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.editor-scroll:last-child {
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+.editor-footer {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 20px max(14px, env(safe-area-inset-bottom));
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.editor-footer[hidden] {
+    display: none;
+}
+
+.sections-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.section-block {
+    background: rgb(243, 235, 252);
+    border-radius: 14px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    transition: box-shadow 0.15s, opacity 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.section-block.dragging {
+    opacity: 0.4;
+}
+
+.section-block.drag-over {
+    box-shadow: 0 0 0 2px rgb(90, 0, 194);
+}
+
+.section-block.is-private {
+    border: 2px dashed rgb(170, 20, 20);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-header .drag-handle {
+    cursor: grab;
+    flex-shrink: 0;
+    font-size: 1.2em;
+    color: #888;
+    user-select: none;
+    touch-action: none;
+    padding: 4px;
+}
+
+.section-name-input {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 6px 8px;
+    border: 1px solid rgb(210, 195, 230);
+}
+
+.private-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8em;
+    color: #555;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.private-toggle input {
+    margin: 0;
+}
+
+.section-header .delete-section-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    background-color: rgb(170, 20, 20);
+}
+
+.section-header .delete-section-btn:hover {
+    background-color: rgb(130, 10, 10);
+}
+
+.section-links {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    min-height: 10px;
+    padding-inline-start: 10px;
+    border-inline-start: 2px solid rgb(220, 200, 240);
+    transition: box-shadow 0.15s;
+    border-radius: 8px;
+}
+
+.section-links.drag-over {
+    box-shadow: inset 0 0 0 2px rgb(150, 90, 220);
 }
 
 .link-row {
@@ -388,7 +575,30 @@ a {
     font-size: 1.2em;
     color: #888;
     user-select: none;
+    touch-action: none;
     padding: 4px;
+}
+
+/* Floating clone that follows the pointer during a drag (see script.js) */
+.drag-ghost {
+    position: fixed;
+    z-index: 2000;
+    pointer-events: none;
+    background: white;
+    color: rgb(35, 6, 139);
+    font-weight: bold;
+    font-size: 0.9em;
+    padding: 10px 14px;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    opacity: 0.95;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.is-dragging {
+    user-select: none;
 }
 
 .link-row .favicon {
@@ -408,7 +618,8 @@ a {
     gap: 4px;
 }
 
-.link-row input {
+.link-row input,
+.link-row textarea {
     margin-bottom: 0;
     width: 100%;
     font-size: 16px;
@@ -424,6 +635,12 @@ a {
     color: #555;
 }
 
+.link-row .description-input {
+    font-family: "Varela Round";
+    color: #555;
+    line-height: 1.35;
+}
+
 .row-actions {
     display: flex;
     flex-direction: column;
@@ -432,17 +649,22 @@ a {
 }
 
 .row-actions button {
-    padding: 4px 8px;
-    font-size: 0.75em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
     box-shadow: none;
     border-radius: 8px;
-    min-width: 40px;
-    min-height: 40px;
+    width: 40px;
+    height: 40px;
 }
 
-.row-actions .move-row {
-    display: flex;
-    gap: 4px;
+.row-actions .refresh-btn {
+    background-color: rgb(150, 90, 220);
+}
+
+.row-actions .refresh-btn:hover {
+    background-color: rgb(120, 60, 190);
 }
 
 .row-actions .delete-btn {
@@ -453,7 +675,8 @@ a {
     background-color: rgb(130, 10, 10);
 }
 
-.add-link-form {
+.add-link-form,
+.add-section-form {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -461,27 +684,39 @@ a {
     padding-top: 14px;
 }
 
-.add-link-form h3 {
+.add-link-form h3,
+.add-section-form h3 {
     padding: 0;
     margin: 0;
     font-size: 1.05em;
     text-align: center;
 }
 
-.add-link-form input {
+.add-link-form input,
+.add-section-form input,
+.add-link-form select,
+.add-link-form textarea {
     width: 100%;
     font-size: 16px;
     padding: 8px;
     margin-bottom: 0;
+    font-family: "Varela Round";
 }
 
-.add-link-form .add-row {
+.add-link-form .add-row,
+.add-section-form .add-row {
     display: flex;
     gap: 8px;
 }
 
-.add-link-form .add-row input {
+.add-link-form .add-row input,
+.add-section-form .add-row input {
     flex: 1;
+}
+
+.add-section-form .private-toggle {
+    justify-content: center;
+    font-size: 0.9em;
 }
 
 .add-link-form .preview-row {
@@ -502,14 +737,10 @@ a {
     color: #444;
 }
 
-.editor-footer {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
 .editor-footer .save-btn {
     background-color: rgb(35, 6, 139);
+    margin: 0;
+    width: 100%;
 }
 
 @media (max-width: 1800px) {}
@@ -567,8 +798,11 @@ a {
         font-size: 1.9em;
     }
 
-    .editor-panel {
-        padding: 14px;
+    .editor-topbar,
+    .editor-scroll,
+    .editor-footer {
+        padding-left: 14px;
+        padding-right: 14px;
     }
 
     .add-link-form .add-row {

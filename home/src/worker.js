@@ -9,15 +9,19 @@ function corsHeaders() {
 	return { "access-control-allow-origin": ALLOWED_ORIGIN, "vary": "origin" };
 }
 
-function linksCacheKey(request) {
-	return new Request(new URL("/api/links", request.url), { method: "GET" });
+// A fixed dummy origin, not request.url's own - so the cache entry is the same regardless
+// of which hostname the worker was reached through (custom domain, *.workers.dev, or a
+// local 127.0.0.1 vs localhost dev server), instead of fragmenting into a separate,
+// independently-stale cache entry per hostname.
+function linksCacheKey() {
+	return new Request("https://cache.internal/api/links", { method: "GET" });
 }
 
 const PROJECTS_KEY = "projects";
 const PROJECTS_CACHE_CONTROL = "public, max-age=86400"; // 1 day - updates are rare, and saves purge this explicitly.
 
-function projectsCacheKey(request) {
-	return new Request(new URL("/api/projects", request.url), { method: "GET" });
+function projectsCacheKey() {
+	return new Request("https://cache.internal/api/projects", { method: "GET" });
 }
 
 // Mirrors star-site/projects.json as of the day this endpoint was added, so a KV miss
@@ -183,35 +187,92 @@ function isAuthorized(request, env) {
 	return env.EDIT_PASSWORD && provided === env.EDIT_PASSWORD;
 }
 
+// True whenever the caller attempted to authenticate at all (header present, right or
+// wrong) - as opposed to a plain anonymous request that never sent the header. Lets GET
+// /api/links tell "wrong password" (401) apart from "no password given" (public data).
+function attemptedAuth(request) {
+	return request.headers.get("x-edit-password") != null;
+}
+
+function sanitizeLink(item) {
+	if (!item || typeof item !== "object") return null;
+	const name = String(item.name ?? "").trim().slice(0, 100);
+	const url = String(item.url ?? "").trim().slice(0, 500);
+	if (!name || !url) return null;
+	try {
+		const parsed = new URL(url);
+		if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+	} catch {
+		return null;
+	}
+	const id = String(item.id ?? crypto.randomUUID()).slice(0, 100);
+	const description = String(item.description ?? "").trim().slice(0, 300);
+	return { id, name, url, description };
+}
+
 function sanitizeLinks(list) {
 	if (!Array.isArray(list)) return null;
 	const cleaned = [];
 	for (const item of list) {
-		if (!item || typeof item !== "object") return null;
-		const name = String(item.name ?? "").trim().slice(0, 100);
-		const url = String(item.url ?? "").trim().slice(0, 500);
-		if (!name || !url) return null;
-		try {
-			const parsed = new URL(url);
-			if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
-		} catch {
-			return null;
-		}
-		const id = String(item.id ?? crypto.randomUUID()).slice(0, 100);
-		const description = String(item.description ?? "").trim().slice(0, 300);
-		cleaned.push({ id, name, url, description });
+		const link = sanitizeLink(item);
+		if (!link) return null;
+		cleaned.push(link);
 	}
 	return cleaned;
 }
 
+function sanitizeSections(sections) {
+	if (!Array.isArray(sections)) return null;
+	const cleaned = [];
+	for (const section of sections) {
+		if (!section || typeof section !== "object") return null;
+		const name = String(section.name ?? "").trim().slice(0, 100);
+		if (!name) return null;
+		const id = String(section.id ?? crypto.randomUUID()).slice(0, 100);
+		const isPrivate = Boolean(section.private);
+		const links = sanitizeLinks(section.links ?? []);
+		if (links === null) return null;
+		cleaned.push({ id, name, private: isPrivate, links });
+	}
+	return cleaned;
+}
+
+// A section-less deployment (or a bare legacy array still in KV) is normalized into one
+// non-private section on read, so nothing needs a one-time migration step to keep working.
+const DEFAULT_SECTIONS = [{ id: "default", name: "קישורים", private: false, links: DEFAULT_LINKS }];
+
+function normalizeToSections(raw) {
+	if (raw == null) return DEFAULT_SECTIONS;
+	if (Array.isArray(raw)) {
+		return [{ id: "default", name: "קישורים", private: false, links: sanitizeLinks(raw) ?? [] }];
+	}
+	if (raw && Array.isArray(raw.sections)) return raw.sections;
+	return DEFAULT_SECTIONS;
+}
+
 async function handleGetLinks(request, env, ctx) {
+	if (isAuthorized(request, env)) {
+		// Authorized reads always bypass the shared edge cache - both so an editor never
+		// sees a stale public snapshot, and so the cache is never populated with a
+		// response that contains private sections.
+		const stored = await env.LINKS.get(LINKS_KEY, "json");
+		const sections = normalizeToSections(stored);
+		return json({ sections }, 200, { ...corsHeaders(), "cache-control": "private, no-store" });
+	}
+
+	// A password was supplied but didn't match - reject outright rather than silently
+	// falling back to the public view, so the editor can tell "wrong password" apart
+	// from "no password" instead of quietly opening with only public data.
+	if (attemptedAuth(request)) return json({ error: "unauthorized" }, 401);
+
 	const cache = caches.default;
-	const cacheKey = linksCacheKey(request);
+	const cacheKey = linksCacheKey();
 	const cached = await cache.match(cacheKey);
 	if (cached) return cached;
 
 	const stored = await env.LINKS.get(LINKS_KEY, "json");
-	const response = json(stored ?? DEFAULT_LINKS, 200, {
+	const sections = normalizeToSections(stored).filter(s => !s.private);
+	const response = json({ sections }, 200, {
 		...corsHeaders(),
 		"cache-control": LINKS_CACHE_CONTROL,
 	});
@@ -227,16 +288,16 @@ async function handleSaveLinks(request, env, ctx) {
 	} catch {
 		return json({ error: "invalid json" }, 400);
 	}
-	const cleaned = sanitizeLinks(body.links);
-	if (!cleaned) return json({ error: "invalid links" }, 400);
-	await env.LINKS.put(LINKS_KEY, JSON.stringify(cleaned));
-	ctx.waitUntil(caches.default.delete(linksCacheKey(request)));
-	return json({ ok: true, links: cleaned });
+	const cleaned = sanitizeSections(body.sections);
+	if (!cleaned) return json({ error: "invalid sections" }, 400);
+	await env.LINKS.put(LINKS_KEY, JSON.stringify({ sections: cleaned }));
+	ctx.waitUntil(caches.default.delete(linksCacheKey()));
+	return json({ ok: true, sections: cleaned });
 }
 
 async function handleGetProjects(request, env, ctx) {
 	const cache = caches.default;
-	const cacheKey = projectsCacheKey(request);
+	const cacheKey = projectsCacheKey();
 	const cached = await cache.match(cacheKey);
 	if (cached) return cached;
 
@@ -260,7 +321,7 @@ async function handleSaveProjects(request, env, ctx) {
 	const cleaned = sanitizeProjects(body);
 	if (!cleaned) return json({ error: "invalid projects" }, 400);
 	await env.LINKS.put(PROJECTS_KEY, JSON.stringify(cleaned));
-	ctx.waitUntil(caches.default.delete(projectsCacheKey(request)));
+	ctx.waitUntil(caches.default.delete(projectsCacheKey()));
 	return json({ ok: true, projects: cleaned });
 }
 
@@ -281,6 +342,7 @@ async function handleMeta(request, env) {
 
 	let title = "";
 	let icon = null;
+	let description = null;
 	try {
 		const resp = await fetch(parsed.toString(), {
 			redirect: "follow",
@@ -293,6 +355,7 @@ async function handleMeta(request, env) {
 			const match = html.match(/<title[^>]*>([^<]*)<\/title>/i);
 			if (match) title = decodeHtmlEntities(match[1].trim());
 			icon = extractIconHref(html, resp.url);
+			description = extractMetaDescription(html);
 		}
 	} catch {
 		// ignore fetch failures, fall back to hostname
@@ -301,7 +364,7 @@ async function handleMeta(request, env) {
 	if (!title) title = parsed.hostname.replace(/^www\./, "");
 
 	const favicon = icon ?? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(parsed.hostname)}.ico`;
-	return json({ title, favicon });
+	return json({ title, favicon, description });
 }
 
 // Public, read-only favicon lookup used by the public projects page: it parses the

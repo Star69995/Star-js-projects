@@ -40,36 +40,53 @@
     </button>
 
     <div id="editor-overlay" class="editor-overlay" hidden>
-        <div class="editor-panel">
-            <div class="editor-header">
-                <h2>ניהול קישורים</h2>
-                <button id="close-editor-btn" type="button" aria-label="סגור">✕</button>
-            </div>
-            <p id="editor-status" class="editor-status"></p>
-
-            <div id="password-gate" class="password-gate">
-                <input id="password-input" type="password" placeholder="סיסמת עריכה" autocomplete="current-password">
-                <button id="unlock-btn" type="button" class="button">כניסה</button>
-            </div>
-
-            <div id="editor-body" hidden>
-                <div id="links-list" class="links-list"></div>
-
-                <form id="add-link-form" class="add-link-form">
-                    <h3>הוספת קישור חדש</h3>
-                    <div class="add-row">
-                        <input id="new-url" type="url" placeholder="כתובת האתר (https://...)" required>
-                        <button id="fetch-meta-btn" type="button" class="button">שאיבת שם</button>
-                    </div>
-                    <input id="new-name" type="text" placeholder="שם האתר" required>
-                    <textarea id="new-description" placeholder="תיאור (אופציונלי)" rows="2"></textarea>
-                    <div id="new-preview" class="preview-row"></div>
-                    <button type="submit" class="button">הוספת קישור</button>
-                </form>
-
-                <div class="editor-footer">
-                    <button id="save-links-btn" type="button" class="button save-btn">שמירת שינויים</button>
+        <div class="editor-panel" id="editor-panel">
+            <div class="editor-topbar">
+                <div class="editor-header">
+                    <h2>ניהול קישורים</h2>
+                    <button id="close-editor-btn" type="button" aria-label="סגור">✕</button>
                 </div>
+                <p id="editor-status" class="editor-status"></p>
+            </div>
+
+            <div class="editor-scroll" id="editor-scroll">
+                <div id="password-gate" class="password-gate">
+                    <input id="password-input" type="password" placeholder="סיסמת עריכה" autocomplete="current-password">
+                    <button id="unlock-btn" type="button" class="button">כניסה</button>
+                </div>
+
+                <div id="editor-body" hidden>
+                    <div id="sections-list" class="sections-list"></div>
+
+                    <form id="add-section-form" class="add-section-form">
+                        <h3>הוספת מקטע חדש</h3>
+                        <div class="add-row">
+                            <input id="new-section-name" type="text" placeholder="שם המקטע" required>
+                            <button type="submit" class="button">הוספת מקטע</button>
+                        </div>
+                        <label class="private-toggle">
+                            <input id="new-section-private" type="checkbox">
+                            לשימוש אישי בלבד (מוסתר מהדף הציבורי)
+                        </label>
+                    </form>
+
+                    <form id="add-link-form" class="add-link-form">
+                        <h3>הוספת קישור חדש</h3>
+                        <select id="new-link-section"></select>
+                        <div class="add-row">
+                            <input id="new-url" type="url" placeholder="כתובת האתר (https://...)" required>
+                            <button id="fetch-meta-btn" type="button" class="button">שאיבת שם</button>
+                        </div>
+                        <input id="new-name" type="text" placeholder="שם האתר" required>
+                        <textarea id="new-description" placeholder="תיאור (אופציונלי)" rows="2"></textarea>
+                        <div id="new-preview" class="preview-row"></div>
+                        <button type="submit" class="button">הוספת קישור</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="editor-footer" id="editor-footer" hidden>
+                <button id="save-links-btn" type="button" class="button save-btn">שמירת שינויים</button>
             </div>
         </div>
     </div>
