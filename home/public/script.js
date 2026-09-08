@@ -30,6 +30,9 @@ const editorFooter = document.getElementById('editor-footer');
 let publicSections = [];
 // Sections shown/edited in the editor - includes private sections once authorized.
 let sections = [];
+// What renderProjects() actually draws: publicSections while anonymous, or the full
+// (private-included) `sections` once the stored password has been verified.
+let displaySections = [];
 let editingPassword = sessionStorage.getItem('edit-password') || '';
 
 const TRASH_ICON = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>`;
@@ -363,12 +366,18 @@ function buildProjectCard(project) {
 
 function renderProjects() {
     container.innerHTML = '';
-    publicSections.forEach(section => {
+    displaySections.forEach(section => {
         if (!section.links.length) return;
 
         const title = document.createElement('h2');
-        title.className = 'section-title';
+        title.className = 'section-title' + (section.private ? ' is-private' : '');
         title.textContent = section.name;
+        if (section.private) {
+            const badge = document.createElement('span');
+            badge.className = 'private-badge';
+            badge.textContent = 'אישי';
+            title.appendChild(badge);
+        }
         container.appendChild(title);
 
         const grid = document.createElement('div');
@@ -396,16 +405,34 @@ async function loadLinks() {
     } catch {
         publicSections = [];
     }
+    displaySections = publicSections;
+
+    // A password from an earlier session is still stored - re-verify it and, if it's
+    // still valid, show private sections on the grid too instead of only in the editor.
+    if (editingPassword) {
+        try {
+            await loadEditorSections();
+            displaySections = sections;
+        } catch {
+            // stored password no longer valid; loadEditorSections() already cleared it
+        }
+    }
     renderProjects();
 }
 
 // Fetches the full section list (private sections included) for the editor. Separate
 // from loadLinks() because that one is anonymous and only ever receives public data.
 async function loadEditorSections() {
-    const res = await fetch('/api/links', { headers: { 'x-edit-password': editingPassword } });
+    // no-store: the same URL was very likely already fetched anonymously (by loadLinks)
+    // and cached by the browser as a public, 24h-cacheable response. Without this, the
+    // browser can silently reuse that cached response here - the x-edit-password header
+    // isn't in the server's Vary list, so it doesn't affect the browser's cache match -
+    // and this authenticated request would come back with stale, private-sections-free data.
+    const res = await fetch('/api/links', { headers: { 'x-edit-password': editingPassword }, cache: 'no-store' });
     if (res.status === 401) {
         editingPassword = '';
         sessionStorage.removeItem('edit-password');
+        displaySections = publicSections;
         throw new Error('unauthorized');
     }
     if (!res.ok) throw new Error('fetch failed');
@@ -570,6 +597,7 @@ async function showEditorBody() {
     try {
         await loadEditorSections();
     } catch {
+        renderProjects();
         setStatus('הסיסמה לא תקינה יותר, יש להתחבר מחדש', true);
         passwordGate.hidden = false;
         editorBody.hidden = true;
@@ -582,6 +610,8 @@ async function showEditorBody() {
     passwordGate.hidden = true;
     editorBody.hidden = false;
     editorFooter.hidden = false;
+    displaySections = sections;
+    renderProjects();
     renderSections();
     newSectionNameInput.value = '';
     newSectionPrivateInput.checked = false;
@@ -650,6 +680,7 @@ async function saveLinks() {
         const data = await res.json();
         sections = data.sections;
         publicSections = sections.filter(s => !s.private);
+        displaySections = sections;
         renderProjects();
         renderSections();
         setStatus('נשמר בהצלחה');

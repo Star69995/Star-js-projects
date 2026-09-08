@@ -73,9 +73,16 @@ wrong) bypasses the cache entirely.
 
 `public/script.js` renders two views from the same section data:
 
-- **Public grid** (`renderProjects`, `#projects-container`): one heading + card grid
-  per non-empty section, sourced from an anonymous `GET /api/links` (server-side
-  filtered — the client never even receives private sections' contents).
+- **Grid** (`renderProjects`, `#projects-container`): one heading + card grid per
+  non-empty section, sourced from `displaySections`. Anonymously this is
+  `publicSections` from an anonymous `GET /api/links` (server-side filtered — the
+  client never even receives private sections' contents). Once a stored
+  `x-edit-password` has been verified (on load, on unlock, or after a save),
+  `displaySections` is swapped for the full authenticated section list instead, so
+  private sections render in the grid too (marked with a small "אישי" badge on the
+  heading) rather than only being editable in the overlay below. Any 401 against the
+  authenticated endpoint clears the stored password and reverts `displaySections` to
+  `publicSections`.
 - **Editor** (`renderSections`, `#sections-list`, inside the password-gated overlay):
   full section list fetched separately via an authenticated `GET /api/links`, with
   drag-and-drop (via a `.drag-handle`, implemented with Pointer Events rather than
