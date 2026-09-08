@@ -13,15 +13,18 @@ function corsHeaders() {
 // of which hostname the worker was reached through (custom domain, *.workers.dev, or a
 // local 127.0.0.1 vs localhost dev server), instead of fragmenting into a separate,
 // independently-stale cache entry per hostname.
-function linksCacheKey() {
-	return new Request("https://cache.internal/api/links", { method: "GET" });
+// The deployment version id is folded into the key so every new deploy starts every colo
+// with a clean cache automatically, without needing to remember to bump anything by hand -
+// the explicit delete-on-save and the 1 day TTL still govern staleness between deploys.
+function linksCacheKey(env) {
+	return new Request(`https://cache.internal/api/links?v=${env.CF_VERSION_METADATA.id}`, { method: "GET" });
 }
 
 const PROJECTS_KEY = "projects";
 const PROJECTS_CACHE_CONTROL = "public, max-age=86400"; // 1 day - updates are rare, and saves purge this explicitly.
 
-function projectsCacheKey() {
-	return new Request("https://cache.internal/api/projects", { method: "GET" });
+function projectsCacheKey(env) {
+	return new Request(`https://cache.internal/api/projects?v=${env.CF_VERSION_METADATA.id}`, { method: "GET" });
 }
 
 // Mirrors star-site/projects.json as of the day this endpoint was added, so a KV miss
@@ -266,7 +269,7 @@ async function handleGetLinks(request, env, ctx) {
 	if (attemptedAuth(request)) return json({ error: "unauthorized" }, 401);
 
 	const cache = caches.default;
-	const cacheKey = linksCacheKey();
+	const cacheKey = linksCacheKey(env);
 	const cached = await cache.match(cacheKey);
 	if (cached) return cached;
 
@@ -291,13 +294,13 @@ async function handleSaveLinks(request, env, ctx) {
 	const cleaned = sanitizeSections(body.sections);
 	if (!cleaned) return json({ error: "invalid sections" }, 400);
 	await env.LINKS.put(LINKS_KEY, JSON.stringify({ sections: cleaned }));
-	ctx.waitUntil(caches.default.delete(linksCacheKey()));
+	ctx.waitUntil(caches.default.delete(linksCacheKey(env)));
 	return json({ ok: true, sections: cleaned });
 }
 
 async function handleGetProjects(request, env, ctx) {
 	const cache = caches.default;
-	const cacheKey = projectsCacheKey();
+	const cacheKey = projectsCacheKey(env);
 	const cached = await cache.match(cacheKey);
 	if (cached) return cached;
 
@@ -321,7 +324,7 @@ async function handleSaveProjects(request, env, ctx) {
 	const cleaned = sanitizeProjects(body);
 	if (!cleaned) return json({ error: "invalid projects" }, 400);
 	await env.LINKS.put(PROJECTS_KEY, JSON.stringify(cleaned));
-	ctx.waitUntil(caches.default.delete(projectsCacheKey()));
+	ctx.waitUntil(caches.default.delete(projectsCacheKey(env)));
 	return json({ ok: true, projects: cleaned });
 }
 
@@ -344,10 +347,15 @@ async function handleMeta(request, env) {
 	let icon = null;
 	let description = null;
 	try {
+		// No cf.cacheEverything/cacheTtl here on purpose: this is an authenticated
+		// editor-preview action (see isAuthorized above), called rarely, where the whole
+		// point is showing the target site's *current* metadata right after it changes -
+		// a Cloudflare edge cache keyed to the URL previously got stuck for up to an hour
+		// (once even caching a broken mid-deploy response), with no way to purge it since
+		// the target is often a *.workers.dev URL outside this project's own zone.
 		const resp = await fetch(parsed.toString(), {
 			redirect: "follow",
 			headers: { "user-agent": "Mozilla/5.0 (compatible; LinkPreviewBot/1.0)" },
-			cf: { cacheTtl: 3600, cacheEverything: true },
 		});
 		const contentType = resp.headers.get("content-type") || "";
 		if (contentType.includes("text/html")) {
