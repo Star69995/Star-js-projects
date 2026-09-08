@@ -3,29 +3,17 @@ const LINKS_KEY = "links";
 // Cross-origin readers of the public links list (e.g. the star-site static site).
 // TEMP for local testing against http://127.0.0.1:8788 - revert to "https://star69995.github.io" before deploying.
 const ALLOWED_ORIGIN = "*";
-const LINKS_CACHE_CONTROL = "public, max-age=86400"; // 1 day - updates are rare, and saves purge this explicitly.
+// Governs client/browser caching only - the server itself always reads KV fresh (see
+// handleGetLinks), so a save is immediately visible everywhere with no server-side cache
+// to purge or wait out. This is just a courtesy to repeat visitors' browsers.
+const LINKS_CACHE_CONTROL = "public, max-age=86400"; // 1 day
 
 function corsHeaders() {
 	return { "access-control-allow-origin": ALLOWED_ORIGIN, "vary": "origin" };
 }
 
-// A fixed dummy origin, not request.url's own - so the cache entry is the same regardless
-// of which hostname the worker was reached through (custom domain, *.workers.dev, or a
-// local 127.0.0.1 vs localhost dev server), instead of fragmenting into a separate,
-// independently-stale cache entry per hostname.
-// The deployment version id is folded into the key so every new deploy starts every colo
-// with a clean cache automatically, without needing to remember to bump anything by hand -
-// the explicit delete-on-save and the 1 day TTL still govern staleness between deploys.
-function linksCacheKey(env) {
-	return new Request(`https://cache.internal/api/links?v=${env.CF_VERSION_METADATA.id}`, { method: "GET" });
-}
-
 const PROJECTS_KEY = "projects";
-const PROJECTS_CACHE_CONTROL = "public, max-age=86400"; // 1 day - updates are rare, and saves purge this explicitly.
-
-function projectsCacheKey(env) {
-	return new Request(`https://cache.internal/api/projects?v=${env.CF_VERSION_METADATA.id}`, { method: "GET" });
-}
+const PROJECTS_CACHE_CONTROL = "public, max-age=86400"; // 1 day - see LINKS_CACHE_CONTROL.
 
 // Mirrors star-site/projects.json as of the day this endpoint was added, so a KV miss
 // still serves the same data star-site already ships locally - not an arbitrary fallback.
@@ -255,9 +243,8 @@ function normalizeToSections(raw) {
 
 async function handleGetLinks(request, env, ctx) {
 	if (isAuthorized(request, env)) {
-		// Authorized reads always bypass the shared edge cache - both so an editor never
-		// sees a stale public snapshot, and so the cache is never populated with a
-		// response that contains private sections.
+		// Authorized reads never return private sections to an anonymous caller, so this
+		// path always reads KV directly rather than risk sharing a response cached for one.
 		const stored = await env.LINKS.get(LINKS_KEY, "json");
 		const sections = normalizeToSections(stored);
 		return json({ sections }, 200, { ...corsHeaders(), "cache-control": "private, no-store" });
@@ -268,19 +255,14 @@ async function handleGetLinks(request, env, ctx) {
 	// from "no password" instead of quietly opening with only public data.
 	if (attemptedAuth(request)) return json({ error: "unauthorized" }, 401);
 
-	const cache = caches.default;
-	const cacheKey = linksCacheKey(env);
-	const cached = await cache.match(cacheKey);
-	if (cached) return cached;
-
+	// Reads KV directly on every request rather than fronting it with the Workers edge
+	// cache (caches.default): that cache is colo-local with no cross-colo purge, so a save
+	// stayed invisible to most of the world for up to LINKS_CACHE_CONTROL's max-age. KV
+	// itself already propagates globally in seconds, so a save is visible everywhere
+	// immediately without needing this extra, harder-to-invalidate layer.
 	const stored = await env.LINKS.get(LINKS_KEY, "json");
 	const sections = normalizeToSections(stored).filter(s => !s.private);
-	const response = json({ sections }, 200, {
-		...corsHeaders(),
-		"cache-control": LINKS_CACHE_CONTROL,
-	});
-	ctx.waitUntil(cache.put(cacheKey, response.clone()));
-	return response;
+	return json({ sections }, 200, { ...corsHeaders(), "cache-control": LINKS_CACHE_CONTROL });
 }
 
 async function handleSaveLinks(request, env, ctx) {
@@ -294,23 +276,14 @@ async function handleSaveLinks(request, env, ctx) {
 	const cleaned = sanitizeSections(body.sections);
 	if (!cleaned) return json({ error: "invalid sections" }, 400);
 	await env.LINKS.put(LINKS_KEY, JSON.stringify({ sections: cleaned }));
-	ctx.waitUntil(caches.default.delete(linksCacheKey(env)));
 	return json({ ok: true, sections: cleaned });
 }
 
 async function handleGetProjects(request, env, ctx) {
-	const cache = caches.default;
-	const cacheKey = projectsCacheKey(env);
-	const cached = await cache.match(cacheKey);
-	if (cached) return cached;
-
+	// See handleGetLinks - reads KV directly rather than through caches.default so a save
+	// is visible everywhere immediately instead of staying colo-stale for up to a day.
 	const stored = await env.LINKS.get(PROJECTS_KEY, "json");
-	const response = json(stored ?? DEFAULT_PROJECTS, 200, {
-		...corsHeaders(),
-		"cache-control": PROJECTS_CACHE_CONTROL,
-	});
-	ctx.waitUntil(cache.put(cacheKey, response.clone()));
-	return response;
+	return json(stored ?? DEFAULT_PROJECTS, 200, { ...corsHeaders(), "cache-control": PROJECTS_CACHE_CONTROL });
 }
 
 async function handleSaveProjects(request, env, ctx) {
@@ -324,7 +297,6 @@ async function handleSaveProjects(request, env, ctx) {
 	const cleaned = sanitizeProjects(body);
 	if (!cleaned) return json({ error: "invalid projects" }, 400);
 	await env.LINKS.put(PROJECTS_KEY, JSON.stringify(cleaned));
-	ctx.waitUntil(caches.default.delete(projectsCacheKey(env)));
 	return json({ ok: true, projects: cleaned });
 }
 

@@ -18,8 +18,5 @@
 	],
 	"observability": {
 		"enabled": true
-	},
-	"version_metadata": {
-		"binding": "CF_VERSION_METADATA"
 	}
 }

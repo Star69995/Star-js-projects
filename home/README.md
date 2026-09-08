@@ -50,24 +50,34 @@ locally, as a Worker secret in production).
 
 | Endpoint | Method | Auth | Notes |
 |---|---|---|---|
-| `/api/links` | GET | optional | No `x-edit-password` header → public, edge-cached (`public, max-age=86400`) response with `private` sections filtered out entirely. Correct `x-edit-password` → full data (including private sections), `cache-control: private, no-store`, never touches the edge cache. **Wrong** password (header present but not matching) → `401`. |
-| `/api/links` | PUT | required | Body `{ "sections": [...] }`. Validates/sanitizes and replaces the whole KV value, then purges the public GET's edge cache entry. |
-| `/api/projects` | GET | none | Public, edge-cached. Unrelated category-keyed project showcase data (not sections/links). |
+| `/api/links` | GET | optional | Always reads KV directly (no server-side edge cache - see below). No `x-edit-password` header → public response, `cache-control: public, max-age=86400` (browser caching only), with `private` sections filtered out entirely. Correct `x-edit-password` → full data (including private sections), `cache-control: private, no-store`. **Wrong** password (header present but not matching) → `401`. |
+| `/api/links` | PUT | required | Body `{ "sections": [...] }`. Validates/sanitizes and replaces the whole KV value; visible to every subsequent GET immediately (see below). |
+| `/api/projects` | GET | none | Public, reads KV directly (no server-side edge cache). Unrelated category-keyed project showcase data (not sections/links). |
 | `/api/projects` | PUT | required | Body is the category-keyed structure directly (not wrapped). |
 | `/api/check-password` | POST | — | Returns `{ ok: boolean }` for the given `x-edit-password` header; used by the editor's unlock screen. |
 | `/api/meta` | GET | required | `?url=` → `{ title, favicon, description }` scraped from the target page (`<title>`, `<link rel="icon">`, `og:description`/`meta[name=description]`). Powers the editor's "שאיבת שם" (fetch info) button, which fills in the name, favicon preview, and description together. |
 | `/api/favicon` | GET | none | `?url=` → 302 redirect to the target site's own favicon (or a decoded `data:` response for inline SVG icons), 404 if none found. Public/read-only, used by both the editor and the public page. |
 | `/api/thumbnail` | GET | none | `?url=` → `{ url, description }`: prefers the target's own `og:image`/description, falls back to an mshots screenshot. Public, edge-cached. |
 
-### Cache safety for `/api/links` GET
+### Cache safety for `/api/links` and `/api/projects` GET
 
-The edge cache (Cache API) is keyed only by the request URL, with no `Vary` on
-`x-edit-password`. To avoid ever serving private data publicly or a stale public
-snapshot to the editor, the authorized and anonymous code paths are kept strictly
-separate in `handleGetLinks`: only the anonymous (no-header) path ever reads from or
-writes to `caches.default`, and it always filters out private sections *before*
-computing the response that gets cached. Any request that sends the header (right or
-wrong) bypasses the cache entirely.
+Neither endpoint fronts KV with the Workers edge cache (`caches.default`) - both read
+KV directly on every request. That cache was tried and dropped: it's colo-local with no
+cross-colo purge, so a save only ever invalidated the one colo that handled the save
+request, leaving every other colo (and the browsers it served) reading stale data for
+up to `LINKS_CACHE_CONTROL`'s `max-age` after every edit. Reading KV directly makes a
+save visible everywhere within KV's own (sub-minute) global propagation instead, at the
+cost of one KV read per request - an acceptable trade for a low-traffic personal site.
+
+The `public, max-age=86400` response header on the anonymous path still lets *browsers*
+cache a response for up to a day - a save doesn't invalidate a browser's own cached
+copy, so a repeat visitor (including the site owner checking their own edit) may need a
+hard refresh to see it immediately. This is a client-side caveat only; it has no bearing
+on server-side correctness.
+
+`handleGetLinks` also keeps the authorized and anonymous code paths strictly separate,
+and always filters out private sections before returning the anonymous response, so
+private data is never exposed to an unauthenticated caller.
 
 ## Editor UI
 
