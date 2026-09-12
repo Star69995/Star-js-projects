@@ -361,10 +361,12 @@ async function handleFavicon(request) {
 
 	let iconUrl = null;
 	try {
+		// No cf.cacheEverything/cacheTtl here - see the matching comment in handleMeta:
+		// it edge-caches per target URL with no way to purge a *.workers.dev target, and a
+		// stale/broken response then sticks for the full TTL.
 		const resp = await fetch(parsed.toString(), {
 			redirect: "follow",
 			headers: { "user-agent": "Mozilla/5.0 (compatible; LinkPreviewBot/1.0)" },
-			cf: { cacheTtl: 86400, cacheEverything: true },
 		});
 		const contentType = resp.headers.get("content-type") || "";
 		if (contentType.includes("text/html")) {
@@ -479,10 +481,12 @@ async function handleThumbnail(request) {
 	let ogImage = null;
 	let description = null;
 	try {
+		// No cf.cacheEverything/cacheTtl here - see the matching comment in handleMeta:
+		// it edge-caches per target URL with no way to purge a *.workers.dev target, and a
+		// stale/broken response then sticks for the full TTL.
 		const resp = await fetch(parsed.toString(), {
 			redirect: "follow",
 			headers: { "user-agent": "Mozilla/5.0 (compatible; LinkPreviewBot/1.0)" },
-			cf: { cacheTtl: 3600, cacheEverything: true },
 		});
 		const contentType = resp.headers.get("content-type") || "";
 		if (contentType.includes("text/html")) {
