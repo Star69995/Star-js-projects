@@ -606,6 +606,27 @@ export default {
 			return handleFavicon(request);
 		}
 
+		if (url.pathname === "/api/debug-fetch" && request.method === "GET") {
+			const targetUrl = url.searchParams.get("url") || "";
+			try {
+				const resp = await fetch(targetUrl, {
+					redirect: "follow",
+					headers: { "user-agent": "Mozilla/5.0 (compatible; LinkPreviewBot/1.0)" },
+				});
+				const body = await resp.text();
+				return json({
+					status: resp.status,
+					finalUrl: resp.url,
+					contentType: resp.headers.get("content-type"),
+					bodyLength: body.length,
+					bodySnippet: body.slice(0, 300),
+					headers: Object.fromEntries(resp.headers),
+				});
+			} catch (err) {
+				return json({ error: String(err), stack: err?.stack });
+			}
+		}
+
 		if (url.pathname === "/api/thumbnail" && request.method === "GET") {
 			return handleThumbnail(request);
 		}
