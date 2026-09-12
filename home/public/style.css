@@ -1,0 +1,823 @@
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+
+:root {
+    --primary-color: #5e2c8a;
+    --nav-height: 60px;
+    --strip-color: rgb(237, 216, 255)
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Varela Round";
+    scroll-margin-top: 90px;
+    scroll-behavior: smooth;
+}
+
+
+html,
+body {
+    width: 100%;
+    overflow-x: hidden;
+    background-color: rgb(243, 240, 250);
+
+}
+
+button,
+.button,
+a {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.stars {
+
+    background-image: url('img/Star_Dim_Tile.png');
+    background-repeat: repeat;
+    background-position: center;
+    background-size: 200px;
+
+}
+
+.strip {
+    text-align: center;
+    background-color: rgb(237, 216, 255);
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 10px;
+    padding: 40px;
+    align-self: center;
+    margin: 10px;
+    width: 100%;
+    margin: 0;
+}
+
+section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 100vh;
+    min-height: 100dvh;
+
+}
+
+p {
+    margin: 20px;
+}
+
+
+#about img {
+    border-radius: 50%;
+    width: 150px;
+    transition: all 0.3s ease-in-out;
+}
+
+#about img:hover {
+    scale: 1.10;
+}
+
+
+input,
+select,
+textarea {
+    margin-bottom: 10px;
+    font-family: "Varela Round";
+    border-radius: 5px;
+    padding: 5px;
+    border: 1px solid rgb(210, 195, 230);
+    resize: vertical;
+}
+
+.button {
+    display: inline-block;
+}
+
+button,
+.button {
+
+    color: rgb(255, 255, 255);
+    background-color: rgb(90, 0, 194);
+    font-family: "Varela Round";
+    border-radius: 5px;
+    padding: 10px;
+
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 9px #999999;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+button:hover,
+.button:hover {
+    background-color: rgb(80, 36, 102)
+}
+
+button:active {
+    background-color: rgb(80, 36, 102);
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+}
+
+h2,
+h3,
+h1 {
+    color: rgb(35, 6, 139);
+    padding-left: 100px;
+    padding-right: 100px;
+    margin: 20px;
+}
+
+h1{
+    font-size: 3em;
+}
+
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+
+#projects-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 50px;
+    padding-bottom: 40px;
+    border-radius: 50px;
+    text-align: center;
+    background-color: rgb(237, 216, 255);
+    box-shadow: rgba(0, 0, 0, 0.3) 10px 10px 10px;
+    align-self: center;
+    margin: 20px;
+}
+
+.section-title {
+    padding: 0;
+    margin: 0 0 10px;
+    font-size: 1.4em;
+}
+
+.section-title .private-badge {
+    display: inline-block;
+    vertical-align: middle;
+    margin-inline-start: 8px;
+    font-size: 0.4em;
+    font-weight: normal;
+    color: rgb(170, 20, 20);
+    border: 1px dashed rgb(170, 20, 20);
+    border-radius: 999px;
+    padding: 2px 10px;
+}
+
+.project-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.project-grid:not(:last-child) {
+    margin-bottom: 20px;
+}
+.button{
+    margin: 20px;
+}
+
+.project-card {
+    display: flex;
+    flex-direction: column;
+    width: 210px;
+    margin: 12px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 3px 10px rgba(35, 6, 139, 0.18);
+    text-decoration: none;
+    color: black;
+    transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(35, 6, 139, 0.28);
+}
+
+/* Owns the box the thumbnail lives in, and clips it - kept separate from .project-thumb
+   itself because a transform (used below) paints outside its own element's box, and an
+   element's own overflow can't clip its own transform. Without this dedicated wrapper,
+   the crop below would bleed down into .project-info instead of being clipped away. */
+.project-thumb-wrap {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background-color: rgb(237, 216, 255);
+    border-bottom: 1px solid rgb(230, 220, 245);
+}
+
+.project-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+    display: block;
+}
+
+.project-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+}
+
+.project-desc-toggle {
+    margin-inline-start: auto;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgb(237, 216, 255);
+    color: rgb(90, 0, 194);
+    box-shadow: none;
+    font-size: 0.9em;
+    line-height: 1;
+}
+
+.project-desc-toggle:hover,
+.project-desc-toggle.is-open {
+    background: rgb(90, 0, 194);
+    color: white;
+}
+
+.project-description {
+    text-align: right;
+    font-size: 0.85em;
+    color: #444;
+    padding: 0 14px 12px;
+    margin: -4px 0 0;
+}
+
+.project-favicon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background: rgb(237, 216, 255);
+    object-fit: cover;
+}
+
+.project-name {
+    font-weight: bold;
+    font-size: 0.95em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
+}
+
+/* Edit-mode entry point: floating icon button, fixed to the corner */
+.fab {
+    position: fixed;
+    top: max(16px, env(safe-area-inset-top));
+    right: max(16px, env(safe-area-inset-right));
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(35, 6, 139);
+    color: white;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    z-index: 900;
+}
+
+.fab:hover {
+    background-color: rgb(80, 36, 102);
+}
+
+.fab:active {
+    transform: translateY(2px);
+}
+
+@media (max-width: 400px) {
+    .fab {
+        top: max(10px, env(safe-area-inset-top));
+        right: max(10px, env(safe-area-inset-right));
+        width: 42px;
+        height: 42px;
+    }
+}
+
+/* Overlay + panel for managing links */
+.editor-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 5, 40, 0.55);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 1000;
+    padding: 0;
+}
+
+.editor-overlay[hidden] {
+    display: none;
+}
+
+/* Mobile: true full-screen editor. Fixed independently of the overlay's flex
+   centering so it can track the on-screen keyboard via --vv-top/--vv-height
+   (set from window.visualViewport in script.js) instead of drifting under it -
+   see the CLAUDE.md note on iOS Safari's visual-viewport keyboard behavior. */
+.editor-panel {
+    position: fixed;
+    inset: 0;
+    top: var(--vv-top, 0px);
+    height: var(--vv-height, 100dvh);
+    background: rgb(250, 247, 255);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+@media (min-width: 700px) {
+    .editor-overlay {
+        align-items: center;
+    }
+
+    .editor-panel {
+        position: static;
+        width: 100%;
+        max-width: 480px;
+        max-height: 85vh;
+        height: auto;
+        border-radius: 20px;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+    }
+}
+
+.editor-topbar {
+    flex-shrink: 0;
+    padding: 20px 20px 10px;
+}
+
+.editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.editor-header h2 {
+    padding: 0;
+    margin: 0;
+    font-size: 1.4em;
+}
+
+#close-editor-btn {
+    background: transparent;
+    color: rgb(35, 6, 139);
+    box-shadow: none;
+    padding: 5px 12px;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.3em;
+    line-height: 1;
+}
+
+#close-editor-btn:hover {
+    background: rgba(35, 6, 139, 0.1);
+}
+
+.editor-status {
+    font-size: 0.85em;
+    min-height: 1.2em;
+    text-align: center;
+    color: rgb(35, 6, 139);
+}
+
+.editor-status.error {
+    color: rgb(170, 20, 20);
+}
+
+.password-gate {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+}
+
+.password-gate[hidden] {
+    display: none;
+}
+
+.password-gate input {
+    width: 100%;
+    padding: 10px;
+    font-size: 1em;
+    text-align: center;
+}
+
+/* Scrolls independently between the sticky topbar and footer, so the close and
+   save buttons stay reachable while the field list scrolls underneath them. */
+.editor-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.editor-scroll:last-child {
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+.editor-footer {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 20px max(14px, env(safe-area-inset-bottom));
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.editor-footer[hidden] {
+    display: none;
+}
+
+.sections-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.section-block {
+    background: rgb(243, 235, 252);
+    border-radius: 14px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    transition: box-shadow 0.15s, opacity 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.section-block.dragging {
+    opacity: 0.4;
+}
+
+.section-block.drag-over {
+    box-shadow: 0 0 0 2px rgb(90, 0, 194);
+}
+
+.section-block.is-private {
+    border: 2px dashed rgb(170, 20, 20);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-header .drag-handle {
+    cursor: grab;
+    flex-shrink: 0;
+    font-size: 1.2em;
+    color: #888;
+    user-select: none;
+    touch-action: none;
+    padding: 4px;
+}
+
+.section-name-input {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 6px 8px;
+    border: 1px solid rgb(210, 195, 230);
+}
+
+.private-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8em;
+    color: #555;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.private-toggle input {
+    margin: 0;
+}
+
+.section-header .delete-section-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    background-color: rgb(170, 20, 20);
+}
+
+.section-header .delete-section-btn:hover {
+    background-color: rgb(130, 10, 10);
+}
+
+.section-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 10px;
+    padding-inline-start: 10px;
+    border-inline-start: 2px solid rgb(220, 200, 240);
+    transition: box-shadow 0.15s;
+    border-radius: 8px;
+}
+
+.section-links.drag-over {
+    box-shadow: inset 0 0 0 2px rgb(150, 90, 220);
+}
+
+.link-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    transition: box-shadow 0.15s, opacity 0.15s;
+}
+
+.link-row.dragging {
+    opacity: 0.4;
+}
+
+.link-row.drag-over {
+    box-shadow: 0 0 0 2px rgb(150, 90, 220);
+}
+
+.link-row .drag-handle {
+    cursor: grab;
+    flex-shrink: 0;
+    font-size: 1.2em;
+    color: #888;
+    user-select: none;
+    touch-action: none;
+    padding: 4px;
+}
+
+/* Floating clone that follows the pointer during a drag (see script.js) */
+.drag-ghost {
+    position: fixed;
+    z-index: 2000;
+    pointer-events: none;
+    background: white;
+    color: rgb(35, 6, 139);
+    font-weight: bold;
+    font-size: 0.9em;
+    padding: 10px 14px;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    opacity: 0.95;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.is-dragging {
+    user-select: none;
+}
+
+.link-row .favicon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background: rgb(237, 216, 255);
+    object-fit: cover;
+}
+
+.link-row .link-fields {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.link-row input,
+.link-row textarea {
+    margin-bottom: 0;
+    width: 100%;
+    font-size: 16px;
+    padding: 6px 8px;
+    border: 1px solid rgb(210, 195, 230);
+}
+
+.link-row .name-input {
+    font-weight: bold;
+}
+
+.link-row .url-input {
+    color: #555;
+}
+
+.link-row .description-input {
+    font-family: "Varela Round";
+    color: #555;
+    line-height: 1.35;
+}
+
+.row-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.row-actions button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+}
+
+.row-actions .refresh-btn {
+    background-color: rgb(150, 90, 220);
+}
+
+.row-actions .refresh-btn:hover {
+    background-color: rgb(120, 60, 190);
+}
+
+.row-actions .delete-btn {
+    background-color: rgb(170, 20, 20);
+}
+
+.row-actions .delete-btn:hover {
+    background-color: rgb(130, 10, 10);
+}
+
+.add-link-form,
+.add-section-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px dashed rgb(200, 180, 225);
+    padding-top: 14px;
+}
+
+.add-link-form h3,
+.add-section-form h3 {
+    padding: 0;
+    margin: 0;
+    font-size: 1.05em;
+    text-align: center;
+}
+
+.add-link-form input,
+.add-section-form input,
+.add-link-form select,
+.add-link-form textarea {
+    width: 100%;
+    font-size: 16px;
+    padding: 8px;
+    margin-bottom: 0;
+    font-family: "Varela Round";
+}
+
+.add-link-form .add-row,
+.add-section-form .add-row {
+    display: flex;
+    gap: 8px;
+}
+
+.add-link-form .add-row input,
+.add-section-form .add-row input {
+    flex: 1;
+}
+
+.add-section-form .private-toggle {
+    justify-content: center;
+    font-size: 0.9em;
+}
+
+.add-link-form .preview-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+}
+
+.add-link-form .preview-row img {
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+}
+
+.add-link-form .preview-row span {
+    font-size: 0.85em;
+    color: #444;
+}
+
+.editor-footer .save-btn {
+    background-color: rgb(35, 6, 139);
+    margin: 0;
+    width: 100%;
+}
+
+@media (max-width: 1800px) {}
+
+@media (min-width: 1800px) {
+    .projects {
+        margin-left: calc((100vw - (400px * 4)) / 2);
+        margin-right: calc((100vw - (400px * 4)) / 2);
+    }
+
+}
+
+
+@media (max-width: 1200px) {
+
+    h2,
+    h3,
+    h1 {
+        color: rgb(35, 6, 139);
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+}
+
+/* For small screens like mobile devices */
+@media (max-width: 600px) {
+    :root {
+
+        --nav-height: auto;
+    }
+
+    * {
+        scroll-margin-top: 200px;
+    }
+}
+
+/* Extra-small screens (350px target) */
+@media (max-width: 400px) {
+    #projects-container {
+        padding: 20px 10px;
+        border-radius: 25px;
+    }
+
+    .button {
+        margin: 8px;
+        padding: 10px 18px;
+    }
+
+    .project-card {
+        width: 140px;
+        margin: 8px;
+    }
+
+    h1 {
+        font-size: 1.9em;
+    }
+
+    .editor-topbar,
+    .editor-scroll,
+    .editor-footer {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .add-link-form .add-row {
+        flex-direction: column;
+    }
+}

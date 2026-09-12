@@ -1,0 +1,22 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "star-projects-home",
+	"main": "src/worker.js",
+	"compatibility_date": "2025-01-01",
+	"account_id": "83645a328d41814cd8ec8e38c3b906aa",
+	"assets": {
+		"directory": "./public",
+		"binding": "ASSETS",
+		"not_found_handling": "none"
+	},
+	"kv_namespaces": [
+		{
+			"binding": "LINKS",
+			"id": "1bf3f24a04dd4a86a7aa1c6293786279",
+			"remote": true
+		}
+	],
+	"observability": {
+		"enabled": true
+	}
+}
