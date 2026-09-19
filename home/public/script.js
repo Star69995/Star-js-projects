@@ -1,3 +1,8 @@
+// Favicon/thumbnail extraction lives on a separate, non-Cloudflare host - a Cloudflare
+// Worker fetching another *.workers.dev site is blocked with "error 1042", which broke
+// this for every one of our own other workers.dev projects. See favicon-proxy/README.md.
+const FAVICON_PROXY = 'https://favicon-proxy-one.vercel.app';
+
 const container = document.getElementById('projects-container');
 
 const overlay = document.getElementById('editor-overlay');
@@ -265,7 +270,7 @@ function faviconCandidates(url) {
         const parsed = new URL(url);
         return [
             `${parsed.origin}/favicon.ico`,
-            `/api/favicon?url=${encodeURIComponent(parsed.href)}`,
+            `${FAVICON_PROXY}/api/favicon?url=${encodeURIComponent(parsed.href)}`,
             `https://icons.duckduckgo.com/ip3/${encodeURIComponent(parsed.hostname)}.ico`,
         ];
     } catch {
@@ -288,14 +293,14 @@ function setFavicon(imgEl, url) {
     tryNext();
 }
 
-// Loads the thumbnail async (the worker returns JSON, not the image directly).
+// Loads the thumbnail async (the proxy returns JSON, not the image directly).
 function loadThumbnail(imgEl, url) {
     try {
         new URL(url);
     } catch {
         return;
     }
-    fetch(`/api/thumbnail?url=${encodeURIComponent(url)}`)
+    fetch(`${FAVICON_PROXY}/api/thumbnail?url=${encodeURIComponent(url)}`)
         .then(res => res.ok ? res.json() : null)
         .then(data => {
             if (!data) return;
