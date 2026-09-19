@@ -55,9 +55,22 @@ locally, as a Worker secret in production).
 | `/api/projects` | GET | none | Public, reads KV directly (no server-side edge cache). Unrelated category-keyed project showcase data (not sections/links). |
 | `/api/projects` | PUT | required | Body is the category-keyed structure directly (not wrapped). |
 | `/api/check-password` | POST | — | Returns `{ ok: boolean }` for the given `x-edit-password` header; used by the editor's unlock screen. |
-| `/api/meta` | GET | required | `?url=` → `{ title, favicon, description }` scraped from the target page (`<title>`, `<link rel="icon">`, `og:description`/`meta[name=description]`). Powers the editor's "שאיבת שם" (fetch info) button, which fills in the name, favicon preview, and description together. |
-| `/api/favicon` | GET | none | `?url=` → 302 redirect to the target site's own favicon (or a decoded `data:` response for inline SVG icons), 404 if none found. Public/read-only, used by both the editor and the public page. |
-| `/api/thumbnail` | GET | none | `?url=` → `{ url, description }`: prefers the target's own `og:image`/description, falls back to an mshots screenshot. Public, edge-cached. |
+| `/api/meta` | GET | required | `?url=` → `{ title, favicon, description }` scraped from the target page (`<title>`, `<link rel="icon">`, `og:description`/`meta[name=description]`). Powers the editor's "שאיבת שם" (fetch info) button, which fills in the name, favicon preview, and description together. Like `/api/favicon`/`/api/thumbnail` below, this still can't reach our own other `*.workers.dev` projects (error 1042) - a known gap in this one editor action, not fixed here. |
+| `/api/favicon` | GET | none | `?url=` → 302 redirect to the target site's own favicon (or a decoded `data:` response for inline SVG icons), 404 if none found. Still here and still correct, but **no longer called by `public/script.js`** - see below. |
+| `/api/thumbnail` | GET | none | `?url=` → `{ url, description }`: prefers the target's own `og:image`/description, falls back to an mshots screenshot. Still here and still correct, but **no longer called by `public/script.js`** - see below. |
+
+### Favicon/thumbnail lookup actually runs on Vercel, not here
+
+A Cloudflare Worker fetching another `*.workers.dev` hostname is blocked by Cloudflare
+itself with "error 1042" - regardless of account, caching settings, or anything else in
+this file's control. That silently broke `/api/favicon`/`/api/thumbnail` for every one of
+our *own* other workers.dev projects (daily-diary, star-docs, time-plan) while working
+fine for external sites like github.com. A plain external server fetching the same URL
+isn't subject to that restriction, so the actual extraction logic that
+`public/script.js` uses now lives in [../favicon-proxy](../favicon-proxy) (deployed on
+Vercel, not Cloudflare) - see its README for the full story and its two endpoints. The
+`/api/favicon`/`/api/thumbnail` routes above are kept working here for any other caller,
+but the public page itself no longer calls them.
 
 ### Cache safety for `/api/links` and `/api/projects` GET
 
