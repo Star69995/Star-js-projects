@@ -649,15 +649,7 @@ async function tryUnlock() {
 }
 
 async function fetchMeta(url) {
-    const res = await fetch(`/api/meta?url=${encodeURIComponent(url)}`, {
-        headers: { 'x-edit-password': editingPassword },
-    });
-    if (res.status === 401) {
-        editingPassword = '';
-        sessionStorage.removeItem('edit-password');
-        openEditor();
-        throw new Error('unauthorized');
-    }
+    const res = await fetch(`${FAVICON_PROXY}/api/meta?url=${encodeURIComponent(url)}`);
     if (!res.ok) throw new Error('fetch failed');
     return res.json();
 }
