@@ -4,7 +4,14 @@
 // Worker fetching another *.workers.dev site is blocked with "error 1042"; a normal
 // server (this one) fetching the same URL is not.
 
-import { extractIconHref, dataUriToBuffer, parseTargetUrl, fetchHtml } from "../lib/extract.js";
+import {
+	extractIconHref,
+	dataUriToBuffer,
+	parseTargetUrl,
+	fetchHtml,
+	isSafeDataImageMime,
+	SAFE_INLINE_IMAGE_HEADERS,
+} from "../lib/extract.js";
 
 export default async function handler(req, res) {
 	res.setHeader("access-control-allow-origin", "*");
@@ -37,11 +44,14 @@ export default async function handler(req, res) {
 	// data: URIs (e.g. an inline SVG favicon) can't be used as a redirect target -
 	// browsers block that as an unsafe redirect - so serve the decoded bytes directly.
 	if (iconUrl.startsWith("data:")) {
+		// The MIME type is chosen by the target page, so only image types are served -
+		// anything else (e.g. data:text/html) would be script running on this origin.
 		const decoded = dataUriToBuffer(iconUrl);
-		if (!decoded) {
+		if (!decoded || !isSafeDataImageMime(decoded.mime)) {
 			res.status(404).end();
 			return;
 		}
+		for (const [name, value] of Object.entries(SAFE_INLINE_IMAGE_HEADERS)) res.setHeader(name, value);
 		res.setHeader("content-type", decoded.mime);
 		res.setHeader("cache-control", "public, max-age=3600");
 		res.status(200).send(decoded.buffer);
