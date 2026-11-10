@@ -173,9 +173,22 @@ function json(data, status = 200, extraHeaders = {}) {
 	});
 }
 
-function isAuthorized(request, env) {
+// Constant-time comparison: both values are hashed to fixed-length digests first, then
+// compared byte-by-byte without an early exit, so response timing reveals nothing about
+// how many leading characters of a guess were right (unlike a plain === on the strings).
+async function isAuthorized(request, env) {
+	if (!env.EDIT_PASSWORD) return false;
 	const provided = request.headers.get("x-edit-password") || "";
-	return env.EDIT_PASSWORD && provided === env.EDIT_PASSWORD;
+	const encoder = new TextEncoder();
+	const [a, b] = await Promise.all([
+		crypto.subtle.digest("SHA-256", encoder.encode(provided)),
+		crypto.subtle.digest("SHA-256", encoder.encode(env.EDIT_PASSWORD)),
+	]);
+	const x = new Uint8Array(a);
+	const y = new Uint8Array(b);
+	let diff = 0;
+	for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
+	return diff === 0;
 }
 
 // True whenever the caller attempted to authenticate at all (header present, right or
@@ -242,7 +255,7 @@ function normalizeToSections(raw) {
 }
 
 async function handleGetLinks(request, env, ctx) {
-	if (isAuthorized(request, env)) {
+	if (await isAuthorized(request, env)) {
 		// Authorized reads never return private sections to an anonymous caller, so this
 		// path always reads KV directly rather than risk sharing a response cached for one.
 		const stored = await env.LINKS.get(LINKS_KEY, "json");
@@ -266,7 +279,7 @@ async function handleGetLinks(request, env, ctx) {
 }
 
 async function handleSaveLinks(request, env, ctx) {
-	if (!isAuthorized(request, env)) return json({ error: "unauthorized" }, 401);
+	if (!(await isAuthorized(request, env))) return json({ error: "unauthorized" }, 401);
 	let body;
 	try {
 		body = await request.json();
@@ -287,7 +300,7 @@ async function handleGetProjects(request, env, ctx) {
 }
 
 async function handleSaveProjects(request, env, ctx) {
-	if (!isAuthorized(request, env)) return json({ error: "unauthorized" }, 401);
+	if (!(await isAuthorized(request, env))) return json({ error: "unauthorized" }, 401);
 	let body;
 	try {
 		body = await request.json();
@@ -301,16 +314,14 @@ async function handleSaveProjects(request, env, ctx) {
 }
 
 async function handleCheckPassword(request, env) {
-	return json({ ok: isAuthorized(request, env) });
+	return json({ ok: await isAuthorized(request, env) });
 }
 
 async function handleMeta(request, env) {
-	if (!isAuthorized(request, env)) return json({ error: "unauthorized" }, 401);
-	const targetUrl = new URL(request.url).searchParams.get("url") || "";
+	if (!(await isAuthorized(request, env))) return json({ error: "unauthorized" }, 401);
 	let parsed;
 	try {
-		parsed = new URL(targetUrl);
-		if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("bad protocol");
+		parsed = parseTargetUrl(new URL(request.url).searchParams.get("url") || "");
 	} catch {
 		return json({ error: "invalid url" }, 400);
 	}
@@ -325,17 +336,13 @@ async function handleMeta(request, env) {
 		// a Cloudflare edge cache keyed to the URL previously got stuck for up to an hour
 		// (once even caching a broken mid-deploy response), with no way to purge it since
 		// the target is often a *.workers.dev URL outside this project's own zone.
-		const resp = await fetch(parsed.toString(), {
-			redirect: "follow",
-			headers: { "user-agent": "Mozilla/5.0 (compatible; LinkPreviewBot/1.0)" },
-		});
-		const contentType = resp.headers.get("content-type") || "";
-		if (contentType.includes("text/html")) {
-			const html = await readBounded(resp, 100_000);
-			const match = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+		const result = await fetchHtml(parsed);
+		if (result) {
+			const match = result.html.match(/<title[^>]*>([^<]*)<\/title>/i);
 			if (match) title = decodeHtmlEntities(match[1].trim());
-			icon = extractIconHref(html, resp.url);
-			description = extractMetaDescription(html);
+			icon = extractIconHref(result.html, result.finalUrl);
+			if (!isSafeImageUrl(icon)) icon = null;
+			description = extractMetaDescription(result.html);
 		}
 	} catch {
 		// ignore fetch failures, fall back to hostname
@@ -350,11 +357,9 @@ async function handleMeta(request, env) {
 // Public, read-only favicon lookup used by the public projects page: it parses the
 // target site's own <link rel="icon"> so we show its real logo instead of a guess.
 async function handleFavicon(request) {
-	const targetUrl = new URL(request.url).searchParams.get("url") || "";
 	let parsed;
 	try {
-		parsed = new URL(targetUrl);
-		if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("bad protocol");
+		parsed = parseTargetUrl(new URL(request.url).searchParams.get("url") || "");
 	} catch {
 		return new Response(null, { status: 400 });
 	}
@@ -364,15 +369,8 @@ async function handleFavicon(request) {
 		// No cf.cacheEverything/cacheTtl here - see the matching comment in handleMeta:
 		// it edge-caches per target URL with no way to purge a *.workers.dev target, and a
 		// stale/broken response then sticks for the full TTL.
-		const resp = await fetch(parsed.toString(), {
-			redirect: "follow",
-			headers: { "user-agent": "Mozilla/5.0 (compatible; LinkPreviewBot/1.0)" },
-		});
-		const contentType = resp.headers.get("content-type") || "";
-		if (contentType.includes("text/html")) {
-			const html = await readBounded(resp, 100_000);
-			iconUrl = extractIconHref(html, resp.url);
-		}
+		const result = await fetchHtml(parsed);
+		if (result) iconUrl = extractIconHref(result.html, result.finalUrl);
 	} catch {
 		// ignore fetch failures, respond 404 below so the client falls back
 	}
@@ -400,7 +398,11 @@ async function handleFavicon(request) {
 function dataUriToResponse(dataUri) {
 	const match = dataUri.match(/^data:([^;,]*)(;base64)?,([\s\S]*)$/);
 	if (!match) return null;
-	const mime = match[1] || "text/plain";
+	const mime = (match[1] || "text/plain").trim().toLowerCase();
+	// The MIME type is chosen by the (untrusted) target page. Serving anything that isn't
+	// an image - data:text/html above all - would run the target's script on THIS origin,
+	// where it could read the editor password out of sessionStorage.
+	if (!isSafeDataImageMime(mime)) return null;
 	const isBase64 = Boolean(match[2]);
 	try {
 		const bytes = isBase64
@@ -408,16 +410,121 @@ function dataUriToResponse(dataUri) {
 			: new TextEncoder().encode(decodeURIComponent(match[3]));
 		return new Response(bytes, {
 			status: 200,
-			headers: { "content-type": mime, "cache-control": "public, max-age=3600" },
+			headers: { "content-type": mime, "cache-control": "public, max-age=3600", ...SAFE_INLINE_IMAGE_HEADERS },
 		});
 	} catch {
 		return null;
 	}
 }
 
+const MAX_HTML_BYTES = 100_000;
+const MAX_REDIRECTS = 5;
+const FETCH_TIMEOUT_MS = 8_000;
+
+// True for IPv4 literals in loopback/private/link-local/CGNAT/reserved ranges. `new URL`
+// already normalizes odd forms (0x7f.1, 2130706433, ...) to dotted-quad, so a plain
+// dotted-quad check covers them.
+function isBlockedIPv4(host) {
+	const m = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+	if (!m) return false;
+	const [a, b] = [Number(m[1]), Number(m[2])];
+	return (
+		a === 0 || a === 10 || a === 127 || a >= 224 ||
+		(a === 100 && b >= 64 && b <= 127) ||
+		(a === 169 && b === 254) ||
+		(a === 172 && b >= 16 && b <= 31) ||
+		(a === 192 && b === 168) ||
+		(a === 192 && b === 0) ||
+		(a === 198 && (b === 18 || b === 19))
+	);
+}
+
+// Validates a caller-supplied (or redirect-supplied) URL before the worker fetches it:
+// http(s) only, default port, no credentials, and no internal-looking host (IPv6 literals
+// are refused outright). Cloudflare already refuses most private-IP fetches from Workers;
+// this is defense in depth so the public /api/favicon and /api/thumbnail endpoints can't
+// be used to probe anything internal.
+function parseTargetUrl(rawUrl) {
+	const parsed = new URL(rawUrl);
+	if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("bad protocol");
+	if (parsed.port !== "") throw new Error("non-default port");
+	if (parsed.username || parsed.password) throw new Error("credentials in url");
+	const host = parsed.hostname.toLowerCase();
+	if (
+		host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") ||
+		host.endsWith(".internal") || host.startsWith("[") || isBlockedIPv4(host)
+	) {
+		throw new Error("blocked host");
+	}
+	return parsed;
+}
+
+// Fetches a page's HTML, following redirects by hand so every hop goes through
+// parseTargetUrl - otherwise a public URL could simply 302 to an internal one.
+async function fetchHtml(startUrl) {
+	let current = startUrl;
+	const signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
+	for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+		const resp = await fetch(current.toString(), {
+			redirect: "manual",
+			signal,
+			headers: { "user-agent": "Mozilla/5.0 (compatible; LinkPreviewBot/1.0)" },
+		});
+		if (resp.status >= 300 && resp.status < 400) {
+			const location = resp.headers.get("location");
+			try {
+				await resp.body?.cancel();
+			} catch {
+				// ignore
+			}
+			if (!location) return null;
+			current = parseTargetUrl(new URL(location, current).toString());
+			continue;
+		}
+		const contentType = resp.headers.get("content-type") || "";
+		if (!contentType.includes("text/html")) {
+			try {
+				await resp.body?.cancel();
+			} catch {
+				// ignore
+			}
+			return null;
+		}
+		const html = await readBounded(resp, MAX_HTML_BYTES);
+		return { html, finalUrl: current.toString() };
+	}
+	throw new Error("too many redirects");
+}
+
+const SAFE_DATA_IMAGE_MIMES = new Set([
+	"image/png", "image/jpeg", "image/gif", "image/webp", "image/avif",
+	"image/x-icon", "image/vnd.microsoft.icon", "image/bmp", "image/svg+xml",
+]);
+
+function isSafeDataImageMime(mime) {
+	return SAFE_DATA_IMAGE_MIMES.has(String(mime).trim().toLowerCase());
+}
+
+// Headers for image bytes served directly from this origin: no MIME sniffing, and a CSP
+// that blocks script and sandboxes the document even if the file (e.g. an SVG, which can
+// carry script) is opened directly in a tab.
+const SAFE_INLINE_IMAGE_HEADERS = {
+	"x-content-type-options": "nosniff",
+	"content-security-policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+};
+
+// Only ever hand back http(s) or safe data:image URLs - never javascript: or the like.
+function isSafeImageUrl(url) {
+	if (typeof url !== "string") return false;
+	if (url.startsWith("https:") || url.startsWith("http:")) return true;
+	const m = url.match(/^data:([^;,]*)/i);
+	return Boolean(m && isSafeDataImageMime(m[1]));
+}
+
 // Reads at most maxBytes of a response body as text - keeps a hostile/huge
 // page from making the worker read an unbounded amount of HTML.
 async function readBounded(resp, maxBytes) {
+	if (!resp.body) return "";
 	const reader = resp.body.getReader();
 	const chunks = [];
 	let total = 0;
@@ -438,7 +545,7 @@ async function readBounded(resp, maxBytes) {
 		buffer.set(chunk, offset);
 		offset += chunk.length;
 	}
-	return new TextDecoder().decode(buffer);
+	return new TextDecoder().decode(buffer.subarray(0, maxBytes));
 }
 
 // Finds the href of the site's own <link rel="icon"|"shortcut icon"|"apple-touch-icon">,
@@ -469,11 +576,9 @@ function extractIconHref(html, baseUrl) {
 // target site's own <meta property="og:image"> (what the site itself wants shown when
 // shared/linked), and falls back to an mshots-generated screenshot when absent.
 async function handleThumbnail(request) {
-	const targetUrl = new URL(request.url).searchParams.get("url") || "";
 	let parsed;
 	try {
-		parsed = new URL(targetUrl);
-		if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error("bad protocol");
+		parsed = parseTargetUrl(new URL(request.url).searchParams.get("url") || "");
 	} catch {
 		return json({ error: "invalid url" }, 400);
 	}
@@ -484,15 +589,11 @@ async function handleThumbnail(request) {
 		// No cf.cacheEverything/cacheTtl here - see the matching comment in handleMeta:
 		// it edge-caches per target URL with no way to purge a *.workers.dev target, and a
 		// stale/broken response then sticks for the full TTL.
-		const resp = await fetch(parsed.toString(), {
-			redirect: "follow",
-			headers: { "user-agent": "Mozilla/5.0 (compatible; LinkPreviewBot/1.0)" },
-		});
-		const contentType = resp.headers.get("content-type") || "";
-		if (contentType.includes("text/html")) {
-			const html = await readBounded(resp, 100_000);
-			ogImage = extractOgImage(html, resp.url);
-			description = extractMetaDescription(html);
+		const result = await fetchHtml(parsed);
+		if (result) {
+			ogImage = extractOgImage(result.html, result.finalUrl);
+			if (!isSafeImageUrl(ogImage)) ogImage = null;
+			description = extractMetaDescription(result.html);
 		}
 	} catch {
 		// ignore fetch failures, fall back to mshots below

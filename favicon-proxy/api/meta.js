@@ -5,9 +5,9 @@
 // server (this one) fetching the same URL is not. Unlike the original, this isn't
 // password-gated: it does the same read-only fetch-and-scrape as the public
 // favicon/thumbnail endpoints below and touches no private data, so there's nothing to
-// protect by requiring auth here.
+// protect by requiring auth here. Internal/private targets are refused by fetchHtml.
 
-import { extractIconHref, extractMetaDescription, decodeHtmlEntities, parseTargetUrl, fetchHtml } from "../lib/extract.js";
+import { extractIconHref, extractMetaDescription, decodeHtmlEntities, parseTargetUrl, fetchHtml, isSafeImageUrl } from "../lib/extract.js";
 
 export default async function handler(req, res) {
 	res.setHeader("access-control-allow-origin", "*");
@@ -33,6 +33,7 @@ export default async function handler(req, res) {
 			const match = result.html.match(/<title[^>]*>([^<]*)<\/title>/i);
 			if (match) title = decodeHtmlEntities(match[1].trim());
 			icon = extractIconHref(result.html, result.finalUrl);
+			if (!isSafeImageUrl(icon)) icon = null;
 			description = extractMetaDescription(result.html);
 		}
 	} catch {
