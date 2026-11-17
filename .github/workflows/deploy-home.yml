@@ -9,6 +9,11 @@ on:
       - ".github/workflows/deploy-home.yml"
   workflow_dispatch: {}
 
+# Least privilege: the deploy only needs to read the repo. Cloudflare auth comes from the
+# CLOUDFLARE_API_TOKEN secret, not from GITHUB_TOKEN.
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

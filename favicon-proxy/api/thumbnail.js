@@ -5,7 +5,7 @@
 // Worker fetching another *.workers.dev site is blocked with "error 1042"; a normal
 // server (this one) fetching the same URL is not.
 
-import { extractOgImage, extractMetaDescription, parseTargetUrl, fetchHtml } from "../lib/extract.js";
+import { extractOgImage, extractMetaDescription, parseTargetUrl, fetchHtml, isSafeImageUrl } from "../lib/extract.js";
 
 export default async function handler(req, res) {
 	res.setHeader("access-control-allow-origin", "*");
@@ -28,6 +28,7 @@ export default async function handler(req, res) {
 		const result = await fetchHtml(parsed.toString());
 		if (result) {
 			ogImage = extractOgImage(result.html, result.finalUrl);
+			if (!isSafeImageUrl(ogImage)) ogImage = null;
 			description = extractMetaDescription(result.html);
 		}
 	} catch {

@@ -17,6 +17,20 @@ subject to that restriction, so the same extraction logic lives here instead.
   `url` is the target's `og:image` (or an mshots screenshot fallback) and `description`
   is its `og:description`/`description` meta tag.
 
+## Security restrictions
+
+All endpoints are public, so target URLs are restricted to keep them from being used to
+reach anything internal (SSRF):
+
+- Only `http:`/`https:` on the default port, with no `user:pass@` credentials.
+- The host must resolve only to public addresses - loopback, private (RFC 1918),
+  link-local (incl. `169.254.169.254` cloud metadata), CGNAT, multicast and reserved
+  ranges are refused, as are `localhost`/`*.local`/`*.internal`.
+- Redirects are followed by hand (max 5) and every hop is re-checked; the whole lookup
+  times out after 8s and reads at most 100KB of HTML.
+- A `data:` favicon is only served if its MIME type is an image, with `nosniff` and a
+  sandboxing CSP - never as `text/html`, which would run the target page's script here.
+
 ## Deploying
 
 ```
